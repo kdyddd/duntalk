@@ -1,15 +1,15 @@
-package com.duntalk.domain.item.entity;
+package com.duntalk.domain.item.dto;
 
-import com.duntalk.domain.item.dto.Job;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@Entity
-public class Item {
+@Getter
+@NoArgsConstructor
+public class NeopleItemDto {
 
-    @Id
     private String itemId;
 
     private String itemName;
@@ -19,5 +19,7 @@ public class Item {
     private String itemType;
 
     private String itemTypeDetail;
+
+    private List<Job> jobs;
 
 }
