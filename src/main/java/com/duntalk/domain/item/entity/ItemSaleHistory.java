@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 public class ItemSaleHistory {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "item_id")

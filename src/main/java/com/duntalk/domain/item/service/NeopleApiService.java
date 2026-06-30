@@ -17,8 +17,8 @@ public class NeopleApiService {
     @Value("${neople.api-key}")
     private String apiKey;
 
-    public NeopleItemResponse getItem(String itemName) {
-        return webClient.get().uri(uriBuilder -> uriBuilder
+    public NeopleItemDto getItem(String itemName) {
+        NeopleItemResponse response = webClient.get().uri(uriBuilder -> uriBuilder
                 .path("/df/auction")
                 .queryParam("itemName", itemName)
                 .queryParam("limit", 1)
@@ -27,6 +27,11 @@ public class NeopleApiService {
                 .retrieve().bodyToMono(NeopleItemResponse.class)
                 .block();
 
+        if(response.getRows().isEmpty()) {
+            throw new IllegalArgumentException("검색 결과가 없습니다: " + itemName);
+        }
+
+        return response.getRows().get(0);
     }
 
     public NeopleItemPriceResponse getItemPrice(String itemName) {
