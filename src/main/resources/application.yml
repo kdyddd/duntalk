@@ -9,3 +9,6 @@ spring:
     hibernate:
       ddl-auto: create
     show-sql: true
+
+neople:
+  api-key: ${NEOPLE_API_KEY}
