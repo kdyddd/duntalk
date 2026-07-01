@@ -1,9 +1,6 @@
 package com.duntalk.domain.item.service;
 
-import com.duntalk.domain.item.dto.NeopleItemAuctionDto;
-import com.duntalk.domain.item.dto.NeopleItemDto;
-import com.duntalk.domain.item.dto.NeopleItemAuctionResponse;
-import com.duntalk.domain.item.dto.NeopleItemResponse;
+import com.duntalk.domain.item.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -44,6 +41,18 @@ public class NeopleApiService {
                 .queryParam("apikey", apiKey)
                 .build())
                 .retrieve().bodyToMono(NeopleItemAuctionResponse.class)
+                .block();
+
+        return response.getRows();
+    }
+
+    public List<NeopleItemSaleDto> getItemSalePrice(String itemId) {
+        NeopleItemSaleResponse response = webClient.get().uri(uriBuilder -> uriBuilder
+                        .path("/df/auction-sold")
+                        .queryParam("itemId", itemId)
+                        .queryParam("apikey", apiKey)
+                        .build())
+                .retrieve().bodyToMono(NeopleItemSaleResponse.class)
                 .block();
 
         return response.getRows();

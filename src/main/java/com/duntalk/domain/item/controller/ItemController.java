@@ -28,4 +28,9 @@ public class ItemController {
         itemHistoryService.saveItemAuctionHistory(itemId);
     }
 
+    @GetMapping("/sale/{itemId}")
+    public void saveItemSaleHistory(@PathVariable String itemId) {
+        itemHistoryService.saveItemSaleHistory(itemId);
+    }
+
 }
