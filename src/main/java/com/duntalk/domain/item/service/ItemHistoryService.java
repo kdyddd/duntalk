@@ -46,4 +46,12 @@ public class ItemHistoryService {
 
     }
 
+    public void saveAllItemHistory() {
+        List<Item> items = itemRepository.findAll();
+        for(Item item : items) {
+            saveItemSaleHistory(item.getItemId());
+            saveItemAuctionHistory(item.getItemId());
+        }
+    }
+
 }
