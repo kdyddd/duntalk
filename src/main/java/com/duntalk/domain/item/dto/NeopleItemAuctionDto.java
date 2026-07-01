@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class NeopleItemPriceDto {
+public class NeopleItemAuctionDto {
 
     private String itemId;
 

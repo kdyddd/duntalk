@@ -7,6 +7,6 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class NeopleItemPriceResponse {
-    private List<NeopleItemPriceDto> rows;
+public class NeopleItemAuctionResponse {
+    private List<NeopleItemAuctionDto> rows;
 }
