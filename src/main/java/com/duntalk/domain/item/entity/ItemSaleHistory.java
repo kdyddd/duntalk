@@ -20,7 +20,7 @@ public class ItemSaleHistory {
 
     private int count;
 
-    private int price;
+    private Long price;
 
     public static ItemSaleHistory from(NeopleItemSaleDto dto, Item item) {
         ItemSaleHistory itemSaleHistory = new ItemSaleHistory();
