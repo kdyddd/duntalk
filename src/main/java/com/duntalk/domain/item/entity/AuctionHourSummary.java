@@ -26,7 +26,7 @@ public class AuctionHourSummary {
         auctionHourSummary.item = dto.getItem();
         auctionHourSummary.startTime = startTime;
         auctionHourSummary.minPrice = dto.getMinPrice();
-        auctionHourSummary.count = dto.getTotalCount();
+        auctionHourSummary.count = dto.getCount();
 
         return auctionHourSummary;
     }

@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AuctionTenMinuteSummary {
+public class AuctionDaySummary {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,14 +25,14 @@ public class AuctionTenMinuteSummary {
 
     private Long count;
 
-    private AuctionTenMinuteSummary(Item item, LocalDateTime startTime, Integer minPrice, Long count) {
+    private AuctionDaySummary(Item item,LocalDateTime startTime, Integer minPrice, Long count) {
         this.item = item;
         this.startTime = startTime;
         this.minPrice = minPrice;
         this.count = count;
     }
 
-    public static AuctionTenMinuteSummary from(AuctionSummaryDto dto, LocalDateTime startTime){
-        return new AuctionTenMinuteSummary(dto.getItem(), startTime, dto.getMinPrice(), dto.getCount());
+    public static AuctionDaySummary from(AuctionSummaryDto dto, LocalDateTime startTime) {
+        return new AuctionDaySummary(dto.getItem(), startTime, dto.getMinPrice(), dto.getCount());
     }
 }

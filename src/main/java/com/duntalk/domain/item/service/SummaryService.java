@@ -29,6 +29,8 @@ public class SummaryService {
 
     private final NeopleApiService neopleApiService;
 
+
+    // 판매기록 통계
     public void saveSaleTenMinuteSummary() {
         LocalDateTime end = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         end = end.withMinute(end.getMinute() / 10 * 10);
@@ -66,6 +68,18 @@ public class SummaryService {
             saleWeekSummaryRepository.save(SaleWeekSummary.from(dto, start));
         }
     }
+
+    //등록 아이템 통계
+
+    public void saveAuctionHourSummary() {
+        LocalDateTime end = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
+        LocalDateTime start = end.minusHours(1);
+        List<SaleSummaryDto> dtoList = saleTenMinuteSummaryRepository.findHourRollup(start, end);
+        for (SaleSummaryDto dto : dtoList) {
+            saleHourSummaryRepository.save(SaleHourSummary.from(dto, start));
+        }
+    }
+
 
 
 

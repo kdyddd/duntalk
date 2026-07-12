@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
 public interface ItemSaleHistoryRepository extends JpaRepository<ItemSaleHistory, Long> {
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryDto(" +
             "h.item, SUM(h.price), SUM(h.count)) " +
