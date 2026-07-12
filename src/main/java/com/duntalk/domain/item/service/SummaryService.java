@@ -1,11 +1,10 @@
 package com.duntalk.domain.item.service;
 
 import com.duntalk.domain.item.dto.AuctionSummaryDto;
+import com.duntalk.domain.item.dto.NeopleItemAuctionDto;
+import com.duntalk.domain.item.dto.NeopleItemSaleDto;
 import com.duntalk.domain.item.dto.SaleSummaryDto;
-import com.duntalk.domain.item.entity.AuctionHourSummary;
-import com.duntalk.domain.item.entity.SaleDaySummary;
-import com.duntalk.domain.item.entity.SaleHourSummary;
-import com.duntalk.domain.item.entity.SaleTenMinuteSummary;
+import com.duntalk.domain.item.entity.*;
 import com.duntalk.domain.item.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,23 +21,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SummaryService {
 
-    private final ItemAuctionHistoryRepository itemAuctionHistoryRepository;
-    private final AuctionHourSummaryRepository auctionHourSummaryRepository;
     private final ItemSaleHistoryRepository itemSaleHistoryRepository;
     private final SaleTenMinuteSummaryRepository saleTenMinuteSummaryRepository;
     private final SaleHourSummaryRepository saleHourSummaryRepository;
     private final SaleDaySummaryRepository saleDaySummaryRepository;
     private final SaleWeekSummaryRepository saleWeekSummaryRepository;
 
-
-    public void saveAuctionHourly() {
-        LocalDateTime end = LocalDateTime.now().truncatedTo(ChronoUnit.HOURS);
-        LocalDateTime start = end.minusHours(1);
-        List<AuctionSummaryDto> dtoList= itemAuctionHistoryRepository.findAuctionStats(start, end);
-        for (AuctionSummaryDto dto : dtoList) {
-            auctionHourSummaryRepository.save(AuctionHourSummary.from(dto, start));
-        }
-    }
+    private final NeopleApiService neopleApiService;
 
     public void saveSaleTenMinuteSummary() {
         LocalDateTime end = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
@@ -72,10 +61,12 @@ public class SummaryService {
         LocalDate thisMonday = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         LocalDateTime end = thisMonday.atStartOfDay();
         LocalDateTime start = end.minusWeeks(1);
-        List<SaleSummaryDto> dtoList = saleHourSummaryRepository.findDayRollup(start, end);
+        List<SaleSummaryDto> dtoList = saleDaySummaryRepository.findWeekRollup(start, end);
         for (SaleSummaryDto dto : dtoList) {
-            saleDaySummaryRepository.save(SaleDaySummary.from(dto, start));
+            saleWeekSummaryRepository.save(SaleWeekSummary.from(dto, start));
         }
     }
+
+
 
 }

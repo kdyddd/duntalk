@@ -38,6 +38,8 @@ public class NeopleApiService {
         NeopleItemAuctionResponse response = webClient.get().uri(uriBuilder -> uriBuilder
                 .path("/df/auction")
                 .queryParam("itemId", itemId)
+                .queryParam("limit", 400)
+                .queryParam("unitPrice", "asc")
                 .queryParam("apikey", apiKey)
                 .build())
                 .retrieve().bodyToMono(NeopleItemAuctionResponse.class)
@@ -50,6 +52,7 @@ public class NeopleApiService {
         NeopleItemSaleResponse response = webClient.get().uri(uriBuilder -> uriBuilder
                         .path("/df/auction-sold")
                         .queryParam("itemId", itemId)
+                        .queryParam("limit", 100)
                         .queryParam("apikey", apiKey)
                         .build())
                 .retrieve().bodyToMono(NeopleItemSaleResponse.class)
