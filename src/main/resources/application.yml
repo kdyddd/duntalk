@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/duntalk?serverTimezone=Asia/Seoul
+    username: root
+    password: 1004
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+neople:
+  api-key: ${NEOPLE_API_KEY}
