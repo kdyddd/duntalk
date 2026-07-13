@@ -16,12 +16,32 @@ public class ItemHistoryScheduler {
 
     private final ItemHistoryService itemHistoryService;
     private final ItemRepository itemRepository;
+    private final SummaryService summaryService;
 
     @Scheduled(cron = "0 0/10 * * * *")
     public void autoSaveAllItemHistory () {
         List<Item> items = itemRepository.findAll();
         itemHistoryService.saveAllItemSaleHistory(items);
         itemHistoryService.saveAuctionTenMinuteSummary(items);
+        summaryService.saveSaleTenMinuteSummary();
+    }
+
+    @Scheduled(cron = "0 4 * * * *")
+    public void autoSaveHourSummary () {
+        summaryService.saveSaleHourSummary();
+        summaryService.saveAuctionHourSummary();
+    }
+
+    @Scheduled(cron = "0 0 1 * * *")
+    public void autoSaveDaySummary () {
+        summaryService.saveSaleDaySummary();
+        summaryService.saveAuctionDaySummary();
+    }
+
+    @Scheduled(cron = "0 0 4 * * MON")
+    public void autoSaveWeekSummary () {
+        summaryService.saveSaleWeekSummary();
+        summaryService.saveAuctionWeekSummary();
     }
 
 
