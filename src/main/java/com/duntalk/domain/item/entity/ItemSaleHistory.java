@@ -28,7 +28,7 @@ public class ItemSaleHistory {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         itemSaleHistory.soldDate = LocalDateTime.parse(dto.getSoldDate(), formatter);
         itemSaleHistory.count = dto.getCount();
-        itemSaleHistory.price = dto.getUnitPrice();
+        itemSaleHistory.price = dto.getPrice();
         return itemSaleHistory;
     }
 
