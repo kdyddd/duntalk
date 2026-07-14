@@ -1,6 +1,7 @@
 package com.duntalk.domain.item.repository;
 
 import com.duntalk.domain.item.dto.AuctionSummaryDto;
+import com.duntalk.domain.item.dto.AuctionSummaryResponse;
 import com.duntalk.domain.item.entity.AuctionTenMinuteSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,4 +18,13 @@ public interface AuctionTenMinuteSummaryRepository extends JpaRepository<Auction
             "GROUP BY s.item")
     List<AuctionSummaryDto> findHourRollup(@Param("start") LocalDateTime start,
                                            @Param("end") LocalDateTime end);
+
+    @Query("SELECT new com.duntalk.domain.item.dto.AuctionSummaryResponse(" +
+            "s.startTime, s.minPrice, s.count) " +
+            "FROM AuctionTenMinuteSummary s " +
+            "WHERE s.item.itemId = :itemId AND s.startTime >= :start AND s.startTime < :end " +
+            "ORDER BY s.startTime ASC")
+    List<AuctionSummaryResponse> findAuctionTenMinuteSummaries(@Param("itemId") String itemId,
+                                                          @Param("start") LocalDateTime start,
+                                                          @Param("end") LocalDateTime end);
 }
