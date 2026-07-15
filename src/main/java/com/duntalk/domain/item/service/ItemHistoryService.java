@@ -25,12 +25,17 @@ public class ItemHistoryService {
 
     public void saveItemSaleHistory(Item item) {
         List<NeopleItemSaleDto> dtoList = neopleApiService.getItemSalePrice(item.getItemId());
-
+        ItemSaleHistory latestItemSaleHistory = itemSaleHistoryRepository.findFirstByItemOrderBySoldDateDescIdDesc(item).orElse(null);
         for(NeopleItemSaleDto dto : dtoList) {
+            if(latestItemSaleHistory != null
+                    && latestItemSaleHistory.getSoldDate().equals(dto.getSoldDate())
+                    && latestItemSaleHistory.getCount() == dto.getCount()
+                    && latestItemSaleHistory.getPrice().equals(dto.getPrice())) {
+                break;
+            }
             ItemSaleHistory itemSaleHistory = ItemSaleHistory.from(dto,item);
             itemSaleHistoryRepository.save(itemSaleHistory);
         }
-
     }
 
     public void saveAuctionTenMinuteSummary(List<Item> items) {

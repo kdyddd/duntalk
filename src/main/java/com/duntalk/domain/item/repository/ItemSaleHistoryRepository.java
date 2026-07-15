@@ -2,6 +2,7 @@ package com.duntalk.domain.item.repository;
 
 import com.duntalk.domain.item.dto.AuctionSummaryDto;
 import com.duntalk.domain.item.dto.SaleSummaryDto;
+import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.entity.ItemSaleHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemSaleHistoryRepository extends JpaRepository<ItemSaleHistory, Long> {
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryDto(" +
@@ -19,5 +21,7 @@ public interface ItemSaleHistoryRepository extends JpaRepository<ItemSaleHistory
             "GROUP BY h.item")
     List<SaleSummaryDto> findSaleSummary(@Param("start") LocalDateTime start,
                                          @Param("end") LocalDateTime end);
+
+    Optional<ItemSaleHistory> findFirstByItemOrderBySoldDateDescIdDesc(Item item);
 
 }

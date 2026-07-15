@@ -9,8 +9,6 @@ public class NeopleItemAuctionDto {
 
     private String itemId;
 
-    private String regDate;
-
     private int count;
 
     private int unitPrice;
