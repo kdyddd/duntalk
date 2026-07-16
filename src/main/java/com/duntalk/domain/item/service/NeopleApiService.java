@@ -64,7 +64,7 @@ public class NeopleApiService {
                 .path("/df/auction")
                 .queryParam("itemId", itemId)
                 .queryParam("limit", 400)
-                .queryParam("unitPrice", "asc")
+                .queryParam("sort", "unitPrice:asc")
                 .queryParam("apikey", apiKey)
                 .build())
                 .retrieve().bodyToMono(NeopleItemAuctionResponse.class)
