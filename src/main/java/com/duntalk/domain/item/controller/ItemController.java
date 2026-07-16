@@ -21,8 +21,8 @@ public class ItemController {
     private final ItemService itemService;
     private final ItemStatisticsService itemStatisticsService;
 
-    @GetMapping("/items/{itemName}")
-    public List<ItemResponse> searchItems(@PathVariable String itemName) {
+    @GetMapping("/items")
+    public List<ItemResponse> searchItems(@RequestParam String itemName) {
 
         return itemService.searchItems(itemName);
     }
