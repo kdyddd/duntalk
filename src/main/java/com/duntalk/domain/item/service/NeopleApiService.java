@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -32,6 +33,30 @@ public class NeopleApiService {
         }
 
         return response.getRows().get(0);
+    }
+
+    public NeopleItemExplainResponse getItemExplain(String itemId) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/df/items/{itemId}")
+                        .queryParam("apikey", apiKey)
+                        .build(itemId))
+                .retrieve()
+                .onStatus(
+                        status -> status.value() == 404,
+                        response -> Mono.error(
+                                new IllegalArgumentException(
+                                        "아이템 상세정보가 없습니다: " + itemId
+                                )
+                        )
+                )
+                .bodyToMono(NeopleItemExplainResponse.class)
+                .blockOptional()
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "아이템 상세정보 응답이 비어 있습니다: " + itemId
+                        )
+                );
     }
 
     public List<NeopleItemAuctionDto> getItemAuctionPrice(String itemId) {

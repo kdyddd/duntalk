@@ -1,6 +1,8 @@
 package com.duntalk.domain.item.service;
 
 import com.duntalk.domain.item.dto.ItemResponse;
+import com.duntalk.domain.item.dto.NeopleItemDto;
+import com.duntalk.domain.item.dto.NeopleItemExplainResponse;
 import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,9 @@ public class ItemService {
     public List<ItemResponse> searchItems(String itemName) {
         List<Item> items = itemRepository.findByItemNameContaining(itemName);
         if(items.isEmpty()) {
-            Item newItem = Item.from(neopleApiService.getItem(itemName));
+            NeopleItemDto dto = neopleApiService.getItem(itemName);
+            NeopleItemExplainResponse response = neopleApiService.getItemExplain(dto.getItemId());
+            Item newItem = Item.from(dto, response.getItemExplain());
             saveItem(newItem);
             ItemResponse itemResponse = ItemResponse.from(newItem);
             return List.of(itemResponse);
