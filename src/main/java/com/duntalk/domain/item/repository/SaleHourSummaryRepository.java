@@ -12,7 +12,7 @@ import java.util.List;
 
 public interface SaleHourSummaryRepository extends JpaRepository<SaleHourSummary, Long> {
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryDto(" +
-            "s.item, SUM(s.totalPrice), SUM(s.totalCount)) " +
+            "s.item, SUM(s.totalPrice), SUM(s.totalCount), MIN(s.minPrice), MAX(s.maxPrice)) " +
             "FROM SaleHourSummary s " +
             "WHERE s.startTime >= :start AND s.startTime < :end " +
             "GROUP BY s.item")
@@ -20,7 +20,7 @@ public interface SaleHourSummaryRepository extends JpaRepository<SaleHourSummary
                                        @Param("end") LocalDateTime end);
 
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryResponse(" +
-            "s.startTime, s.totalPrice, s.totalCount, CAST(s.totalPrice / s.totalCount AS integer)) " +
+            "s.startTime, s.totalPrice, s.totalCount, CAST(s.totalPrice / s.totalCount AS integer), s.minPrice, s.maxPrice) " +
             "FROM SaleHourSummary s " +
             "WHERE s.item.itemId = :itemId AND s.startTime >= :start AND s.startTime < :end " +
             "ORDER BY s.startTime ASC")

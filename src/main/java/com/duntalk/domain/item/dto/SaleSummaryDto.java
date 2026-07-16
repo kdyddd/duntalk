@@ -10,4 +10,6 @@ public class SaleSummaryDto {
     private Item item;
     private Long totalPrice;
     private Long totalCount;
+    private Integer minPrice;
+    private Integer maxPrice;
 }

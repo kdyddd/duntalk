@@ -24,14 +24,21 @@ public class SaleWeekSummary {
 
     private Long totalCount;
 
-    private SaleWeekSummary(Item item, LocalDateTime startTime, Long totalPrice, Long totalCount) {
+    private Integer minPrice;
+
+    private Integer maxPrice;
+
+    private SaleWeekSummary(Item item, LocalDateTime startTime, Long totalPrice, Long totalCount, Integer minPrice, Integer maxPrice) {
         this.item = item;
         this.startTime = startTime;
         this.totalPrice = totalPrice;
         this.totalCount = totalCount;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
     }
 
     public static SaleWeekSummary from(SaleSummaryDto dto, LocalDateTime startTime){
-        return new SaleWeekSummary(dto.getItem(), startTime, dto.getTotalPrice(), dto.getTotalCount());
+        return new SaleWeekSummary(dto.getItem(), startTime, dto.getTotalPrice(), dto.getTotalCount(), dto.getMinPrice(), dto.getMaxPrice());
     }
+
 }

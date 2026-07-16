@@ -24,15 +24,21 @@ public class SaleTenMinuteSummary {
 
     private Long totalCount;
 
-    private SaleTenMinuteSummary(Item item, LocalDateTime startTime, Long totalPrice, Long totalCount) {
+    private Integer minPrice;
+
+    private Integer maxPrice;
+
+    private SaleTenMinuteSummary(Item item, LocalDateTime startTime, Long totalPrice, Long totalCount, Integer minPrice, Integer maxPrice) {
         this.item = item;
         this.startTime = startTime;
         this.totalPrice = totalPrice;
         this.totalCount = totalCount;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
     }
 
     public static SaleTenMinuteSummary from(SaleSummaryDto dto, LocalDateTime startTime){
-        return new SaleTenMinuteSummary(dto.getItem(), startTime, dto.getTotalPrice(), dto.getTotalCount());
+        return new SaleTenMinuteSummary(dto.getItem(), startTime, dto.getTotalPrice(), dto.getTotalCount(), dto.getMinPrice(), dto.getMaxPrice());
     }
 
 }

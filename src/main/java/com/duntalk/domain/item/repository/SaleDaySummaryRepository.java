@@ -12,14 +12,14 @@ import java.util.List;
 
 public interface SaleDaySummaryRepository extends JpaRepository<SaleDaySummary, Long> {
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryDto(" +
-            "s.item, SUM(s.totalPrice), SUM(s.totalCount)) " +
+            "s.item, SUM(s.totalPrice), SUM(s.totalCount), MIN(s.minPrice), MAX(s.maxPrice)) " +
             "FROM SaleDaySummary s " +
             "WHERE s.startTime >= :start AND s.startTime < :end " +
             "GROUP BY s.item")
     List<SaleSummaryDto> findWeekRollup(@Param("start") LocalDateTime start,
                                         @Param("end") LocalDateTime end);
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryResponse(" +
-            "s.startTime, s.totalPrice, s.totalCount, CAST(s.totalPrice / s.totalCount AS integer)) " +
+            "s.startTime, s.totalPrice, s.totalCount, CAST(s.totalPrice / s.totalCount AS integer), s.minPrice, s.maxPrice) " +
             "FROM SaleDaySummary s " +
             "WHERE s.item.itemId = :itemId AND s.startTime >= :start AND s.startTime < :end " +
             "ORDER BY s.startTime ASC")

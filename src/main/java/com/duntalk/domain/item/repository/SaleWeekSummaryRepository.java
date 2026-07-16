@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface SaleWeekSummaryRepository extends JpaRepository<SaleWeekSummary, Long> {
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryResponse(" +
-            "s.startTime, s.totalPrice, s.totalCount, CAST(s.totalPrice / s.totalCount AS integer)) " +
+            "s.startTime, s.totalPrice, s.totalCount, CAST(s.totalPrice / s.totalCount AS integer), s.minPrice, s.maxPrice) " +
             "FROM SaleWeekSummary s " +
             "WHERE s.item.itemId = :itemId AND s.startTime >= :start AND s.startTime < :end " +
             "ORDER BY s.startTime ASC")

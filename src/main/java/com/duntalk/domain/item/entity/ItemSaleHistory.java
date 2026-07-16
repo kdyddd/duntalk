@@ -24,12 +24,15 @@ public class ItemSaleHistory {
 
     private Long price;
 
+    private Integer unitPrice;
+
     public static ItemSaleHistory from(NeopleItemSaleDto dto, Item item) {
         ItemSaleHistory itemSaleHistory = new ItemSaleHistory();
         itemSaleHistory.item = item;
         itemSaleHistory.soldDate = dto.getSoldDate();
         itemSaleHistory.count = dto.getCount();
         itemSaleHistory.price = dto.getPrice();
+        itemSaleHistory.unitPrice = dto.getUnitPrice();
         return itemSaleHistory;
     }
 

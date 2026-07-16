@@ -17,4 +17,6 @@ public class NeopleItemSaleDto {
     private int count;
 
     private Long price;
+
+    private Integer unitPrice;
 }

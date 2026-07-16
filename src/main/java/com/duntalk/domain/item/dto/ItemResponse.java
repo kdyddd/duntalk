@@ -18,6 +18,8 @@ public class ItemResponse {
 
     private String itemTypeDetail;
 
+    private String itemExplain;
+
     public static ItemResponse from (Item item) {
         ItemResponse itemResponse = new ItemResponse();
         itemResponse.itemId = item.getItemId();
@@ -25,6 +27,7 @@ public class ItemResponse {
         itemResponse.itemRarity = item.getItemRarity();
         itemResponse.itemType = item.getItemType();
         itemResponse.itemTypeDetail = item.getItemTypeDetail();
+        itemResponse.itemExplain = item.getItemExplain();
 
         return itemResponse;
     }

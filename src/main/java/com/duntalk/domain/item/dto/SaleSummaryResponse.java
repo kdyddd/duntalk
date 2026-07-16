@@ -14,6 +14,7 @@ public class SaleSummaryResponse {
     private Long totalPrice;
     private Long totalCount;
     private Integer avgPrice;
-
+    private Integer minPrice;
+    private Integer maxPrice;
 
 }

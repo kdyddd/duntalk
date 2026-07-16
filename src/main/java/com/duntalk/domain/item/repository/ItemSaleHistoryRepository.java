@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface ItemSaleHistoryRepository extends JpaRepository<ItemSaleHistory, Long> {
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryDto(" +
-            "h.item, SUM(h.price), SUM(h.count)) " +
+            "h.item, SUM(h.price), SUM(h.count), MIN(h.unitPrice), MAX(h.unitPrice)) " +
             "FROM ItemSaleHistory h " +
             "WHERE h.soldDate >= :start AND h.soldDate < :end " +
             "GROUP BY h.item")
