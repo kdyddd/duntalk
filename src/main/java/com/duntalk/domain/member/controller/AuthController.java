@@ -2,6 +2,7 @@ package com.duntalk.domain.member.controller;
 
 
 import com.duntalk.domain.member.dto.CurrentUserResponse;
+import com.duntalk.global.security.MemberPrincipal;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,13 +16,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     @GetMapping("/me")
-    public ResponseEntity<CurrentUserResponse> getCurrentUser(@AuthenticationPrincipal OidcUser oidcUser) {
-        if(oidcUser == null) {
+    public ResponseEntity<CurrentUserResponse> getCurrentUser(
+            @AuthenticationPrincipal MemberPrincipal principal
+    ) {
+        if (principal == null) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .build();
         }
-        CurrentUserResponse response = new CurrentUserResponse(oidcUser.getSubject(), oidcUser.getEmail(), oidcUser.getFullName());
+
+        CurrentUserResponse response =
+                new CurrentUserResponse(
+                        principal.memberId(),
+                        principal.role()
+                );
+
         return ResponseEntity.ok(response);
     }
+
 }
