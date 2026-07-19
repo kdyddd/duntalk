@@ -1,5 +1,6 @@
 package com.duntalk.domain.item.repository;
 
+import com.duntalk.domain.item.dto.SaleRankingDto;
 import com.duntalk.domain.item.dto.SaleSummaryDto;
 import com.duntalk.domain.item.dto.SaleSummaryResponse;
 import com.duntalk.domain.item.entity.SaleDaySummary;
@@ -26,4 +27,10 @@ public interface SaleDaySummaryRepository extends JpaRepository<SaleDaySummary, 
     List<SaleSummaryResponse> findSaleDaySummaries(@Param("itemId") String itemId,
                                                     @Param("start") LocalDateTime start,
                                                     @Param("end") LocalDateTime end);
+
+    @Query("SELECT new com.duntalk.domain.item.dto.SaleRankingDto(" +
+            "s.item, CAST(s.totalPrice / s.totalCount AS integer)) " +
+            "FROM SaleDaySummary s " +
+            "WHERE s.startTime = :start AND s.totalCount > 0")
+    List<SaleRankingDto> findAvgPrices(@Param("start") LocalDateTime start);
 }

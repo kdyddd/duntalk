@@ -4,9 +4,12 @@ import com.duntalk.domain.item.dto.ItemResponse;
 import com.duntalk.domain.item.dto.NeopleItemDto;
 import com.duntalk.domain.item.dto.NeopleItemExplainResponse;
 import com.duntalk.domain.item.entity.Item;
+import com.duntalk.domain.item.entity.SaleHourSummary;
 import com.duntalk.domain.item.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service

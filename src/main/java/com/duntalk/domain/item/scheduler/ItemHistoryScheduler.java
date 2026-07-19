@@ -3,6 +3,7 @@ package com.duntalk.domain.item.scheduler;
 import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.repository.ItemRepository;
 import com.duntalk.domain.item.service.ItemHistoryService;
+import com.duntalk.domain.item.service.ItemRankingService;
 import com.duntalk.domain.item.service.SummaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,6 +18,7 @@ public class ItemHistoryScheduler {
     private final ItemHistoryService itemHistoryService;
     private final ItemRepository itemRepository;
     private final SummaryService summaryService;
+    private final ItemRankingService itemRankingService;
 
     @Scheduled(cron = "0 0/10 * * * *")
     public void autoSaveAllItemHistory () {
@@ -30,6 +32,7 @@ public class ItemHistoryScheduler {
     public void autoSaveHourSummary () {
         summaryService.saveSaleHourSummary();
         summaryService.saveAuctionHourSummary();
+        itemRankingService.updateRanking();
     }
 
     @Scheduled(cron = "0 0 1 * * *")
