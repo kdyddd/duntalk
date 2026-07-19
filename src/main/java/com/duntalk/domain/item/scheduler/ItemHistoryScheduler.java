@@ -30,15 +30,18 @@ public class ItemHistoryScheduler {
 
     @Scheduled(cron = "0 4 * * * *")
     public void autoSaveHourSummary () {
-        summaryService.saveSaleHourSummary();
-        summaryService.saveAuctionHourSummary();
         itemRankingService.updateRanking();
     }
 
-    @Scheduled(cron = "0 0 1 * * *")
+    @Scheduled(cron = "0 5 0 * * *")
     public void autoSaveDaySummary () {
         summaryService.saveSaleDaySummary();
         summaryService.saveAuctionDaySummary();
+    }
+
+    @Scheduled(cron = "0 6 * * * *")
+    public void autoUpdateRanking () {
+        itemRankingService.updateRanking();
     }
 
     @Scheduled(cron = "0 0 4 * * MON")
