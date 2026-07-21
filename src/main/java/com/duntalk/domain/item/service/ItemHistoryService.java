@@ -19,12 +19,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemHistoryService {
 
-    private final NeopleApiService neopleApiService;
+    private final NeopleItemApiService neopleItemApiService;
     private final ItemSaleHistoryRepository itemSaleHistoryRepository;
     private final AuctionTenMinuteSummaryRepository auctionTenMinuteSummaryRepository;
 
     public void saveItemSaleHistory(Item item) {
-        List<NeopleItemSaleDto> dtoList = neopleApiService.getItemSalePrice(item.getItemId());
+        List<NeopleItemSaleDto> dtoList = neopleItemApiService.getItemSalePrice(item.getItemId());
         ItemSaleHistory latestItemSaleHistory = itemSaleHistoryRepository.findFirstByItemOrderBySoldDateDescIdDesc(item).orElse(null);
         for(NeopleItemSaleDto dto : dtoList) {
             if(latestItemSaleHistory != null
@@ -43,7 +43,7 @@ public class ItemHistoryService {
         LocalDateTime start = now.truncatedTo(ChronoUnit.MINUTES)
                 .withMinute(now.getMinute() / 10 * 10);
         for(Item item : items) {
-            List<NeopleItemAuctionDto> dtoList = neopleApiService.getItemAuctionPrice(item.getItemId());
+            List<NeopleItemAuctionDto> dtoList = neopleItemApiService.getItemAuctionPrice(item.getItemId());
             if(!dtoList.isEmpty()) {
                 int minPrice = dtoList.get(0).getUnitPrice();
                 long count = 0;

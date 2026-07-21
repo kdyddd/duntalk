@@ -11,7 +11,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class NeopleApiService {
+public class NeopleItemApiService {
 
     private final WebClient webClient;
 
