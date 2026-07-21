@@ -18,21 +18,54 @@ public class NeopleApiService {
     @Value("${neople.api-key}")
     private String apiKey;
 
-    public NeopleItemDto getItem(String itemName) {
+    public boolean hasAuctionListing(String itemId) {
         NeopleItemResponse response = webClient.get().uri(uriBuilder -> uriBuilder
                 .path("/df/auction")
-                .queryParam("itemName", itemName)
+                .queryParam("itemId", itemId)
                 .queryParam("limit", 1)
                 .queryParam("apikey", apiKey)
                 .build())
                 .retrieve().bodyToMono(NeopleItemResponse.class)
                 .block();
 
-        if(response.getRows().isEmpty()) {
+        if (response == null || response.getRows() == null || response.getRows().isEmpty()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean hasSaleListing(String itemId) {
+        NeopleItemResponse response = webClient.get().uri(uriBuilder -> uriBuilder
+                        .path("/df/auction-sold")
+                        .queryParam("itemId", itemId)
+                        .queryParam("limit", 1)
+                        .queryParam("apikey", apiKey)
+                        .build())
+                .retrieve().bodyToMono(NeopleItemResponse.class)
+                .block();
+
+        if (response == null || response.getRows() == null || response.getRows().isEmpty()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public NeopleItemResponse getItem(String itemName) {
+        NeopleItemResponse response = webClient.get().uri(uriBuilder -> uriBuilder
+                        .path("/df/items")
+                        .queryParam("itemName", itemName)
+                        .queryParam("apikey", apiKey)
+                        .build())
+                .retrieve().bodyToMono(NeopleItemResponse.class)
+                .block();
+
+        if (response == null || response.getRows() == null || response.getRows().isEmpty()) {
             throw new IllegalArgumentException("검색 결과가 없습니다: " + itemName);
         }
 
-        return response.getRows().get(0);
+        return response;
     }
 
     public NeopleItemExplainResponse getItemExplain(String itemId) {
