@@ -1,8 +1,10 @@
 package com.duntalk.domain.member.service;
 
+import com.duntalk.domain.member.dto.CharacterResponse;
 import com.duntalk.domain.member.dto.PendingSignup;
 import com.duntalk.domain.member.entity.Member;
 import com.duntalk.domain.member.repository.MemberRepository;
+import com.duntalk.domain.member.type.ServerId;
 import com.duntalk.domain.member.type.SocialProvider;
 import com.duntalk.global.security.MemberPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,6 +26,8 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     private final SecurityContextRepository securityContextRepository;
+
+    private final NeopleMemberApiService neopleMemberApiService;
 
 
     public void login(
@@ -82,6 +86,10 @@ public class MemberService {
                 provider,
                 providerId
         );
+    }
+
+    public CharacterResponse searchCharacter(ServerId serverId, String characterName) {
+        return CharacterResponse.from(neopleMemberApiService.searchCharacter(serverId, characterName));
     }
 
 
