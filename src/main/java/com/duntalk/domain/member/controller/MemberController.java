@@ -1,11 +1,11 @@
 package com.duntalk.domain.member.controller;
 
+import com.duntalk.domain.member.dto.CharacterEquipmentResponse;
 import com.duntalk.domain.member.dto.CharacterResponse;
 import com.duntalk.domain.member.dto.PendingSignup;
 import com.duntalk.domain.member.entity.Member;
 import com.duntalk.domain.member.service.MemberService;
 import com.duntalk.domain.member.type.ServerId;
-import com.duntalk.domain.member.type.SocialProvider;
 import com.duntalk.global.security.MemberPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,15 +13,11 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/members")
@@ -64,7 +60,16 @@ public class MemberController {
         return memberService.searchCharacter(serverId, characterName);
     }
 
+    @PostMapping("/character/equipment")
+    public CharacterEquipmentResponse startCharacterVerification(@AuthenticationPrincipal MemberPrincipal memberPrincipal,
+                                                      @RequestParam ServerId serverId,@RequestParam String characterId, HttpSession session) {
+        return memberService.getCharacterEquipment(memberPrincipal.memberId(), serverId, characterId, session);
+    }
 
+    @PostMapping("/character/equipment/confirm")
+    public boolean checkCharacterVerification(@AuthenticationPrincipal MemberPrincipal memberPrincipal, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+        return memberService.checkCharacterEquipment(memberPrincipal.memberId(), session, request, response);
+    }
 
 
 }

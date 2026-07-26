@@ -32,6 +32,7 @@ public class Member {
     @Column(nullable = false)
     private SocialProvider provider;
 
+    @Column(nullable = false)
     private String providerId;
 
     private String email;
@@ -64,5 +65,9 @@ public class Member {
     public void delete() {
         this.status = MemberStatus.WITHDRAWN;
         this.withdrawnAt = LocalDateTime.now();
+    }
+
+    public void verifyAdventure() {
+        this.role = MemberRole.ADVENTURE;
     }
 }
