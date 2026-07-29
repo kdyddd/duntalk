@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.List;
 
@@ -26,33 +28,70 @@ public class ItemHistoryScheduler {
     public void autoSaveAllItemHistory() {
         long totalStart = System.nanoTime();
 
-        long itemLoadStart = System.nanoTime();
-        List<Item> items = itemRepository.findAll();
-        long itemLoadMs = elapsedMillis(itemLoadStart);
+        try {
+            long itemLoadStart = System.nanoTime();
+            List<Item> items = itemRepository.findAll();
+            long itemLoadMs = elapsedMillis(itemLoadStart);
 
-        long saleStart = System.nanoTime();
-        itemHistoryService.saveAllItemSaleHistory(items);
-        long saleMs = elapsedMillis(saleStart);
+            long saleStart = System.nanoTime();
+            itemHistoryService.saveAllItemSaleHistory(items);
+            long saleMs = elapsedMillis(saleStart);
 
-        long auctionStart = System.nanoTime();
-        itemHistoryService.saveAuctionTenMinuteSummary(items);
-        long auctionMs = elapsedMillis(auctionStart);
+            long auctionStart = System.nanoTime();
+            itemHistoryService.saveAuctionTenMinuteSummary(items);
+            long auctionMs = elapsedMillis(auctionStart);
 
-        long summaryStart = System.nanoTime();
-        summaryService.saveSaleTenMinuteSummary();
-        long summaryMs = elapsedMillis(summaryStart);
+            long summaryStart = System.nanoTime();
+            summaryService.saveSaleTenMinuteSummary();
+            long summaryMs = elapsedMillis(summaryStart);
 
-        long totalMs = elapsedMillis(totalStart);
+            long totalMs = elapsedMillis(totalStart);
 
-        log.info(
-                "[10분 수집 완료] items={}, itemLoad={}ms, sale={}ms, auction={}ms, summary={}ms, total={}ms",
-                items.size(),
-                itemLoadMs,
-                saleMs,
-                auctionMs,
-                summaryMs,
-                totalMs
-        );
+            log.info(
+                    "[10분 수집 완료] items={}, itemLoad={}ms, sale={}ms, auction={}ms, summary={}ms, total={}ms",
+                    items.size(),
+                    itemLoadMs,
+                    saleMs,
+                    auctionMs,
+                    summaryMs,
+                    totalMs
+            );
+
+        } catch (WebClientResponseException e) {
+            long totalMs = elapsedMillis(totalStart);
+            int status = e.getStatusCode().value();
+
+            if (status == 503) {
+                log.warn(
+                        "[10분 수집 중단] 네오플 API 점검 중, status=503, total={}ms",
+                        totalMs
+                );
+                return;
+            }
+
+            log.error(
+                    "[10분 수집 실패] 네오플 API 오류, status={}, message={}, total={}ms",
+                    status,
+                    e.getMessage(),
+                    totalMs,
+                    e
+            );
+
+        } catch (WebClientRequestException e) {
+            log.warn(
+                    "[10분 수집 중단] 네오플 API 연결 또는 응답 실패, message={}, total={}ms",
+                    e.getMessage(),
+                    elapsedMillis(totalStart)
+            );
+
+        } catch (Exception e) {
+            log.error(
+                    "[10분 수집 실패] 예상하지 못한 오류, message={}, total={}ms",
+                    e.getMessage(),
+                    elapsedMillis(totalStart),
+                    e
+            );
+        }
     }
 
     @Scheduled(cron = "0 4 * * * *")

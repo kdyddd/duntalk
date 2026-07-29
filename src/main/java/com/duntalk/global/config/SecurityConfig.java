@@ -19,10 +19,19 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf ->
-                        csrf.ignoringRequestMatchers("/members/signup")
+                        csrf.ignoringRequestMatchers(
+                                "/members/signup",
+                                "/members/character/equipment",
+                                "/members/character/equipment/confirm"
+                        )
                 )
                 .authorizeHttpRequests(authorize ->
                         authorize
+                                .requestMatchers(
+                                        "/members/character/equipment",
+                                        "/members/character/equipment/confirm"
+                                )
+                                .authenticated()
                                 .anyRequest()
                                 .permitAll()
                 )

@@ -5,12 +5,10 @@ import com.duntalk.domain.item.dto.NeopleItemDto;
 import com.duntalk.domain.item.dto.NeopleItemExplainResponse;
 import com.duntalk.domain.item.dto.NeopleItemResponse;
 import com.duntalk.domain.item.entity.Item;
-import com.duntalk.domain.item.entity.SaleHourSummary;
 import com.duntalk.domain.item.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +17,7 @@ import java.util.List;
 public class ItemService {
 
     private final ItemRepository itemRepository;
-    private final NeopleApiService neopleApiService;
+    private final NeopleItemApiService neopleItemApiService;
 
     public void saveItem(Item item) {
         itemRepository.save(item);
@@ -34,7 +32,7 @@ public class ItemService {
                     .toList();
         }
 
-        NeopleItemResponse response = neopleApiService.getItem(itemName);
+        NeopleItemResponse response = neopleItemApiService.getItem(itemName);
         List<ItemResponse> itemResponses = new ArrayList<>();
 
         for (NeopleItemDto dto : response.getRows()) {
@@ -44,13 +42,13 @@ public class ItemService {
                 continue;
             }
 
-            boolean hasTradeData = neopleApiService.hasAuctionListing(itemId) || neopleApiService.hasSaleListing(itemId);
+            boolean hasTradeData = neopleItemApiService.hasAuctionListing(itemId) || neopleItemApiService.hasSaleListing(itemId);
 
             if (!hasTradeData) {
                 continue;
             }
 
-            NeopleItemExplainResponse explainResponse = neopleApiService.getItemExplain(itemId);
+            NeopleItemExplainResponse explainResponse = neopleItemApiService.getItemExplain(itemId);
 
             Item newItem = Item.from(dto, explainResponse.getItemExplain());
 

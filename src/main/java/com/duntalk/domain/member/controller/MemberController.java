@@ -1,9 +1,11 @@
 package com.duntalk.domain.member.controller;
 
+import com.duntalk.domain.member.dto.CharacterEquipmentResponse;
+import com.duntalk.domain.member.dto.CharacterResponse;
 import com.duntalk.domain.member.dto.PendingSignup;
 import com.duntalk.domain.member.entity.Member;
 import com.duntalk.domain.member.service.MemberService;
-import com.duntalk.domain.member.type.SocialProvider;
+import com.duntalk.domain.member.type.ServerId;
 import com.duntalk.global.security.MemberPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,18 +13,11 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/members")
@@ -32,15 +27,8 @@ public class MemberController {
     private final MemberService memberService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Void> signup(
-            HttpSession session,
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) {
-        PendingSignup pendingSignup =
-                (PendingSignup) session.getAttribute(
-                        PendingSignup.SESSION_KEY
-                );
+    public ResponseEntity<Void> signup(HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+        PendingSignup pendingSignup = (PendingSignup) session.getAttribute(PendingSignup.SESSION_KEY);
 
         if (pendingSignup == null) {
             throw new ResponseStatusException(
@@ -49,14 +37,9 @@ public class MemberController {
             );
         }
 
-        Member member =
-                memberService.signup(pendingSignup);
+        Member member = memberService.signup(pendingSignup);
 
-        memberService.login(
-                member,
-                request,
-                response
-        );
+        memberService.login(member, request, response);
 
         session.removeAttribute(PendingSignup.SESSION_KEY);
 
@@ -66,15 +49,26 @@ public class MemberController {
     }
 
     @GetMapping("/signup-status")
-    public ResponseEntity<Boolean> getSignupStatus(
-            HttpSession session
-    ) {
-        boolean signupAllowed =
-                session.getAttribute(
-                        PendingSignup.SESSION_KEY
-                ) != null;
+    public ResponseEntity<Boolean> getSignupStatus(HttpSession session) {
+        boolean signupAllowed = session.getAttribute(PendingSignup.SESSION_KEY) != null;
 
         return ResponseEntity.ok(signupAllowed);
+    }
+
+    @GetMapping("/character")
+    public CharacterResponse searchCharacter(@RequestParam ServerId serverId, @RequestParam String characterName) {
+        return memberService.searchCharacter(serverId, characterName);
+    }
+
+    @PostMapping("/character/equipment")
+    public CharacterEquipmentResponse startCharacterVerification(@AuthenticationPrincipal MemberPrincipal memberPrincipal,
+                                                      @RequestParam ServerId serverId,@RequestParam String characterId, HttpSession session) {
+        return memberService.getCharacterEquipment(memberPrincipal.memberId(), serverId, characterId, session);
+    }
+
+    @PostMapping("/character/equipment/confirm")
+    public boolean checkCharacterVerification(@AuthenticationPrincipal MemberPrincipal memberPrincipal, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+        return memberService.checkCharacterEquipment(memberPrincipal.memberId(), session, request, response);
     }
 
 
