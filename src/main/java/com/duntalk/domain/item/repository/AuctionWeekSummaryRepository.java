@@ -13,9 +13,7 @@ public interface AuctionWeekSummaryRepository extends JpaRepository<AuctionWeekS
     @Query("SELECT new com.duntalk.domain.item.dto.AuctionSummaryResponse(" +
             "s.startTime, s.minPrice, s.count) " +
             "FROM AuctionWeekSummary s " +
-            "WHERE s.item.itemId = :itemId AND s.startTime >= :start AND s.startTime < :end " +
+            "WHERE s.item.itemId = :itemId " +
             "ORDER BY s.startTime ASC")
-    List<AuctionSummaryResponse> findAuctionWeekSummaries(@Param("itemId") String itemId,
-                                                         @Param("start") LocalDateTime start,
-                                                         @Param("end") LocalDateTime end);
+    List<AuctionSummaryResponse> findAuctionWeekSummaries(@Param("itemId") String itemId);
 }

@@ -13,9 +13,7 @@ public interface SaleWeekSummaryRepository extends JpaRepository<SaleWeekSummary
     @Query("SELECT new com.duntalk.domain.item.dto.SaleSummaryResponse(" +
             "s.startTime, s.totalPrice, s.totalCount, CAST(s.totalPrice / s.totalCount AS integer), s.minPrice, s.maxPrice) " +
             "FROM SaleWeekSummary s " +
-            "WHERE s.item.itemId = :itemId AND s.startTime >= :start AND s.startTime < :end " +
+            "WHERE s.item.itemId = :itemId " +
             "ORDER BY s.startTime ASC")
-    List<SaleSummaryResponse> findSaleWeekSummaries(@Param("itemId") String itemId,
-                                                   @Param("start") LocalDateTime start,
-                                                   @Param("end") LocalDateTime end);
+    List<SaleSummaryResponse> findSaleWeekSummaries(@Param("itemId") String itemId);
 }

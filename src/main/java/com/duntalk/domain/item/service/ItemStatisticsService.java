@@ -45,7 +45,7 @@ public class ItemStatisticsService {
 
     private ItemStatisticsResponse getHourItemStatistics (String itemId) {
         LocalDateTime end = LocalDateTime.now();
-        LocalDateTime start = end.minusDays(3);
+        LocalDateTime start = end.minusDays(7);
         List<SaleSummaryResponse> saleSummaries = saleHourSummaryRepository.findSaleHourSummaries(itemId, start, end);
         List<AuctionSummaryResponse> auctionSummaries = auctionHourSummaryRepository.findAuctionHourSummaries(itemId, start, end);
         return new ItemStatisticsResponse(saleSummaries, auctionSummaries);
@@ -53,17 +53,15 @@ public class ItemStatisticsService {
 
     private ItemStatisticsResponse getDayItemStatistics (String itemId) {
         LocalDateTime end = LocalDateTime.now();
-        LocalDateTime start = end.minusDays(150);
+        LocalDateTime start = end.minusMonths(6);
         List<SaleSummaryResponse> saleSummaries = saleDaySummaryRepository.findSaleDaySummaries(itemId, start, end);
         List<AuctionSummaryResponse> auctionSummaries = auctionDaySummaryRepository.findAuctionDaySummaries(itemId, start, end);
         return new ItemStatisticsResponse(saleSummaries, auctionSummaries);
     }
 
     private ItemStatisticsResponse getWeekItemStatistics (String itemId) {
-        LocalDateTime end = LocalDateTime.now();
-        LocalDateTime start = end.minusWeeks(50);
-        List<SaleSummaryResponse> saleSummaries = saleWeekSummaryRepository.findSaleWeekSummaries(itemId, start, end);
-        List<AuctionSummaryResponse> auctionSummaries = auctionWeekSummaryRepository.findAuctionWeekSummaries(itemId, start, end);
+        List<SaleSummaryResponse> saleSummaries = saleWeekSummaryRepository.findSaleWeekSummaries(itemId);
+        List<AuctionSummaryResponse> auctionSummaries = auctionWeekSummaryRepository.findAuctionWeekSummaries(itemId);
         return new ItemStatisticsResponse(saleSummaries, auctionSummaries);
     }
 
