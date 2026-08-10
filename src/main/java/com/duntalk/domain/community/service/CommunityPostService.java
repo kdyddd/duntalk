@@ -1,8 +1,6 @@
 package com.duntalk.domain.community.service;
 
-import com.duntalk.domain.community.dto.CommunityPostListDto;
-import com.duntalk.domain.community.dto.CommunityPostListResponse;
-import com.duntalk.domain.community.dto.CommunityPostRequest;
+import com.duntalk.domain.community.dto.*;
 import com.duntalk.domain.community.entity.CommunityPost;
 import com.duntalk.domain.community.repository.CommunityPostRepository;
 import com.duntalk.domain.community.type.CommunityPostSort;
@@ -17,6 +15,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -83,5 +84,19 @@ public class CommunityPostService {
         );
 
         return communityPostRepository.save(post).getId();
+    }
+
+    public CommunityPostResponse getCommunityPost(Long communityPostId, Integer memberId) {
+        CommunityPostDto post = communityPostRepository.findPostById(communityPostId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        String writerName = post.adventureName() != null
+                ? post.adventureName()
+                : createTemporaryNickname(post.writerId());
+
+        boolean isWriter = Objects.equals(post.writerId(), memberId);
+
+        return CommunityPostResponse.from(post, writerName, isWriter);
     }
 }

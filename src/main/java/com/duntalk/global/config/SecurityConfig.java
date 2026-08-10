@@ -19,14 +19,6 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                .csrf(csrf ->
-                        csrf.ignoringRequestMatchers(
-                                "/members/signup",
-                                "/members/character/equipment",
-                                "/members/character/equipment/confirm",
-                                "/community/post"
-                        )
-                )
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(

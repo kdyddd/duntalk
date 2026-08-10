@@ -2,6 +2,7 @@ package com.duntalk.domain.community.controller;
 
 import com.duntalk.domain.community.dto.CommunityPostListResponse;
 import com.duntalk.domain.community.dto.CommunityPostRequest;
+import com.duntalk.domain.community.dto.CommunityPostResponse;
 import com.duntalk.domain.community.service.CommunityPostService;
 import com.duntalk.domain.community.type.CommunityPostSort;
 import com.duntalk.domain.community.type.CommunityType;
@@ -31,7 +32,19 @@ public class CommunityPostController {
 
     }
 
-    @PostMapping("/community/post")
+    @GetMapping("/community/posts/{communityPostId}")
+    public CommunityPostResponse getCommunityPost(
+            @PathVariable("communityPostId") Long communityPostId,
+            @AuthenticationPrincipal MemberPrincipal memberPrincipal
+    ) {
+        Integer memberId = memberPrincipal == null
+                ? null
+                : memberPrincipal.memberId();
+
+        return communityPostService.getCommunityPost(communityPostId, memberId);
+    }
+
+    @PostMapping("/community/posts")
     public Long createCommunityPost(
             @RequestBody CommunityPostRequest request,
             @AuthenticationPrincipal MemberPrincipal memberPrincipal
