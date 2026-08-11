@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -85,8 +86,10 @@ public class CommunityPostService {
 
         return communityPostRepository.save(post).getId();
     }
-
+    @Transactional
     public CommunityPostResponse getCommunityPost(Long communityPostId, Integer memberId) {
+        communityPostRepository.increaseViewCount(communityPostId);
+
         CommunityPostDto post = communityPostRepository.findPostById(communityPostId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("게시글을 찾을 수 없습니다."));

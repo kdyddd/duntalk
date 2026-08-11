@@ -7,6 +7,7 @@ import com.duntalk.domain.community.type.CommunityType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -59,4 +60,13 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
             AND c.id = :communityPostId
             """)
     Optional<CommunityPostDto> findPostById(@Param("communityPostId") Long communityPostId);
+
+    @Modifying
+    @Query("""
+            UPDATE CommunityPost c
+            SET c.viewCount = c.viewCount + 1
+            WHERE c.deleted = false
+            AND c.id = :communityPostId
+            """)
+    int increaseViewCount(@Param("communityPostId") Long communityPostId);
 }
