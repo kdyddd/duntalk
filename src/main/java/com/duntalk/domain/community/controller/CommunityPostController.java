@@ -51,4 +51,5 @@ public class CommunityPostController {
     ){
         return communityPostService.createCommunityPost(request, memberPrincipal.memberId());
     }
+    
 }
