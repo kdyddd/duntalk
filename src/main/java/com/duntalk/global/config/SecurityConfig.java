@@ -28,7 +28,7 @@ public class SecurityConfig {
                                 .authenticated()
                                 .requestMatchers(
                                         HttpMethod.POST,
-                                        "/community/post"
+                                        "/community/posts"
                                 )
                                 .authenticated()
                                 .anyRequest()
