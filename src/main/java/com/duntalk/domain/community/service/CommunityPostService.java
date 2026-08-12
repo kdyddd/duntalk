@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -101,5 +100,40 @@ public class CommunityPostService {
         boolean isWriter = Objects.equals(post.writerId(), memberId);
 
         return CommunityPostResponse.from(post, writerName, isWriter);
+    }
+
+    @Transactional
+    public void updateCommunityPost(CommunityPostRequest request, Long communityPostId, Integer memberId) {
+        CommunityPost post = communityPostRepository.findByIdAndDeletedFalse(communityPostId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+
+        if(!Objects.equals(post.getWriter().getId(), memberId)) {
+            throw new IllegalStateException("게시글을 수정할 권한이 없습니다.");
+        }
+
+        Item item = null;
+
+        if (request.itemId() != null) {
+            item = itemRepository.findById(request.itemId())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("아이템을 찾을 수 없습니다.")
+                    );
+        }
+
+        post.update(request.type(), item, request.title(), request.content());
+    }
+
+    @Transactional
+    public void deleteCommunityPost(Long communityPostId, Integer memberId) {
+        CommunityPost post = communityPostRepository.findByIdAndDeletedFalse(communityPostId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+
+        if(!Objects.equals(post.getWriter().getId(), memberId)) {
+            throw new IllegalStateException("게시글을 삭제할 권한이 없습니다.");
+        }
+
+        post.delete();
     }
 }

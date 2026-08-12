@@ -51,5 +51,28 @@ public class CommunityPostController {
     ){
         return communityPostService.createCommunityPost(request, memberPrincipal.memberId());
     }
-    
+
+    @PutMapping("/community/posts/{communityPostId}")
+    public void updateCommunityPost(
+            @RequestBody CommunityPostRequest request,
+            @PathVariable("communityPostId") Long communityPostId,
+            @AuthenticationPrincipal MemberPrincipal memberPrincipal
+    ){
+        Integer memberId = memberPrincipal == null
+                ? null
+                : memberPrincipal.memberId();
+        communityPostService.updateCommunityPost(request, communityPostId, memberId);
+    }
+
+    @DeleteMapping("/community/posts/{communityPostId}")
+    public void deleteCommunityPost(
+            @PathVariable("communityPostId") Long communityPostId,
+            @AuthenticationPrincipal MemberPrincipal memberPrincipal
+    ){
+        Integer memberId = memberPrincipal == null
+                ? null
+                : memberPrincipal.memberId();
+        communityPostService.deleteCommunityPost(communityPostId, memberId);
+    }
+
 }

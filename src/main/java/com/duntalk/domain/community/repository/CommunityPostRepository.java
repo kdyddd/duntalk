@@ -69,4 +69,6 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
             AND c.id = :communityPostId
             """)
     int increaseViewCount(@Param("communityPostId") Long communityPostId);
+
+    Optional<CommunityPost> findByIdAndDeletedFalse(Long communityPostId);
 }

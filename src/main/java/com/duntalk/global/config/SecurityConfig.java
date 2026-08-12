@@ -31,6 +31,16 @@ public class SecurityConfig {
                                         "/community/posts"
                                 )
                                 .authenticated()
+                                .requestMatchers(
+                                        HttpMethod.PUT,
+                                        "/community/posts/*"
+                                )
+                                .authenticated()
+                                .requestMatchers(
+                                        HttpMethod.DELETE,
+                                        "/community/posts/*"
+                                )
+                                .authenticated()
                                 .anyRequest()
                                 .permitAll()
                 )
