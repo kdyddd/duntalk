@@ -2,6 +2,7 @@ package com.duntalk.domain.community.service;
 
 import com.duntalk.domain.community.dto.*;
 import com.duntalk.domain.community.entity.CommunityPost;
+import com.duntalk.domain.community.repository.CommunityCommentRepository;
 import com.duntalk.domain.community.repository.CommunityPostRepository;
 import com.duntalk.domain.community.type.CommunityPostSort;
 import com.duntalk.domain.community.type.CommunityType;
@@ -26,6 +27,7 @@ public class CommunityPostService {
     private final CommunityPostRepository communityPostRepository;
     private final MemberRepository memberRepository;
     private final ItemRepository itemRepository;
+    private final CommunityCommentRepository communityCommentRepository;
 
     public Page<CommunityPostListResponse> getCommunityPostList(CommunityType type, CommunityPostSort postSort, String keyword, Pageable pageable) {
 
@@ -46,9 +48,11 @@ public class CommunityPostService {
         Page<CommunityPostListDto> postListDtos = communityPostRepository.findPostList(type, keyword, sortedPageable);
 
 
+
         return postListDtos.map(postListDto -> {
+            int commentCount = communityCommentRepository.countByPostIdAndDeletedFalse(postListDto.communityPostId());
             String writerName = postListDto.adventureName() != null ? postListDto.adventureName() : createTemporaryNickname(postListDto.writerId());
-            return CommunityPostListResponse.from(postListDto, writerName);
+            return CommunityPostListResponse.from(postListDto, writerName, commentCount);
         });
 
     }

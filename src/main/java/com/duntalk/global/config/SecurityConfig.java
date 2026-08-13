@@ -28,7 +28,8 @@ public class SecurityConfig {
                                 .authenticated()
                                 .requestMatchers(
                                         HttpMethod.POST,
-                                        "/community/posts"
+                                        "/community/posts",
+                                        "/community/posts/*/comments"
                                 )
                                 .authenticated()
                                 .requestMatchers(
@@ -38,7 +39,8 @@ public class SecurityConfig {
                                 .authenticated()
                                 .requestMatchers(
                                         HttpMethod.DELETE,
-                                        "/community/posts/*"
+                                        "/community/posts/*",
+                                        "/community/comments/*"
                                 )
                                 .authenticated()
                                 .anyRequest()

@@ -40,4 +40,21 @@ public class CommunityComment {
 
     private LocalDateTime deletedAt;
 
+    private CommunityComment(CommunityComment parent, CommunityPost post, Member writer, String content) {
+        this.parent = parent;
+        this.post = post;
+        this.writer = writer;
+        this.content = content;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public static CommunityComment create(CommunityComment parent, CommunityPost post, Member writer, String content) {
+        return new CommunityComment(parent, post, writer, content);
+    }
+
+    public void delete() {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }
