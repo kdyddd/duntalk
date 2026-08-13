@@ -75,4 +75,17 @@ public class CommunityPostController {
         communityPostService.deleteCommunityPost(communityPostId, memberId);
     }
 
+    @PostMapping("/community/posts/{communityPostId}/like")
+    public void changeLikedPost(
+            @PathVariable("communityPostId") Long communityPostId,
+            @AuthenticationPrincipal MemberPrincipal memberPrincipal
+    ){
+        Integer memberId = memberPrincipal == null
+                ? null
+                : memberPrincipal.memberId();
+        communityPostService.changeLikedPost(communityPostId, memberId);
+    }
+
+
+
 }

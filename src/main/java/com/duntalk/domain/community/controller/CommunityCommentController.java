@@ -55,5 +55,16 @@ public class CommunityCommentController {
 
     }
 
+    @PostMapping("/community/comments/{communityCommentId}/like")
+    public void changeLikedComment(
+            @PathVariable("communityCommentId") Long communityCommentId,
+            @AuthenticationPrincipal MemberPrincipal memberPrincipal
+    ){
+        Integer memberId = memberPrincipal == null
+                ? null
+                : memberPrincipal.memberId();
+        communityCommentService.changeLikedComment(communityCommentId, memberId);
+    }
+
 
 }

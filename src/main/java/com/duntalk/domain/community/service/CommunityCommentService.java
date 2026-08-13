@@ -4,7 +4,9 @@ import com.duntalk.domain.community.dto.CommunityCommentDto;
 import com.duntalk.domain.community.dto.CommunityCommentRequest;
 import com.duntalk.domain.community.dto.CommunityCommentResponse;
 import com.duntalk.domain.community.entity.CommunityComment;
+import com.duntalk.domain.community.entity.CommunityCommentLike;
 import com.duntalk.domain.community.entity.CommunityPost;
+import com.duntalk.domain.community.repository.CommunityCommentLikeRepository;
 import com.duntalk.domain.community.repository.CommunityCommentRepository;
 import com.duntalk.domain.community.repository.CommunityPostRepository;
 import com.duntalk.domain.member.entity.Member;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class CommunityCommentService {
     private final CommunityPostRepository communityPostRepository;
     private final CommunityCommentRepository communityCommentRepository;
     private final MemberRepository memberRepository;
+    private final CommunityCommentLikeRepository communityCommentLikeRepository;
 
     @Transactional
     public Long createCommunityComment(Long communityPostId, CommunityCommentRequest request, Integer memberId) {
@@ -76,9 +80,9 @@ public class CommunityCommentService {
 
             boolean isWriter = Objects.equals(communityCommentDto.writerId(), memberId);
 
+            boolean liked = memberId != null && communityCommentLikeRepository.findByCommentIdAndMemberId(communityCommentDto.communityCommentId(), memberId).isPresent();
 
-
-            return CommunityCommentResponse.from(communityCommentDto, writerName, isWriter);
+            return CommunityCommentResponse.from(communityCommentDto, writerName, isWriter, liked);
 
         }).toList();
 
@@ -102,5 +106,27 @@ public class CommunityCommentService {
         }
 
         comment.delete();
+    }
+
+    @Transactional
+    public void changeLikedComment(Long communityCommentId, Integer memberId) {
+        if (memberId == null) {
+            throw new IllegalStateException("댓글을 좋아요 할 권한이 없습니다.");
+        }
+        Optional<CommunityCommentLike> commentLike = communityCommentLikeRepository.findByCommentIdAndMemberId(communityCommentId, memberId);
+        CommunityComment comment = communityCommentRepository.findByIdAndDeletedFalse(communityCommentId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        if (commentLike.isPresent()) {
+            communityCommentLikeRepository.delete(commentLike.get());
+            comment.decreaseLiked();
+        }else {
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("회원을 찾을 수 없습니다."));
+            communityCommentLikeRepository.save(CommunityCommentLike.create(comment, member));
+            comment.increaseLiked();
+        }
+
     }
 }

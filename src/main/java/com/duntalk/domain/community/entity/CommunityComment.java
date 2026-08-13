@@ -57,4 +57,11 @@ public class CommunityComment {
         this.deletedAt = LocalDateTime.now();
     }
 
+    public void decreaseLiked() {
+        this.likeCount --;
+    }
+
+    public void increaseLiked() {
+        this.likeCount ++;
+    }
 }

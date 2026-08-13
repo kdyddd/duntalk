@@ -76,6 +76,12 @@ public class CommunityPost {
         this.deleted = true;
     }
 
+    public void increaseLiked() {
+        this.likeCount ++;
+    }
 
+    public void decreaseLiked() {
+        this.likeCount --;
+    }
 
 }

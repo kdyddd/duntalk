@@ -29,7 +29,9 @@ public class SecurityConfig {
                                 .requestMatchers(
                                         HttpMethod.POST,
                                         "/community/posts",
-                                        "/community/posts/*/comments"
+                                        "/community/posts/*/comments",
+                                        "/community/posts/*/like",
+                                        "/community/comments/*/like"
                                 )
                                 .authenticated()
                                 .requestMatchers(

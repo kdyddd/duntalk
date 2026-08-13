@@ -15,10 +15,11 @@ public record CommunityPostResponse(
         LocalDateTime createdAt,
         int viewCount,
         int likeCount,
-        boolean isWriter
+        boolean isWriter,
+        boolean liked
 ) {
 
-    public static CommunityPostResponse from(CommunityPostDto dto, String writerName, boolean isWriter) {
+    public static CommunityPostResponse from(CommunityPostDto dto, String writerName, boolean isWriter, boolean liked) {
         return new CommunityPostResponse(
                 dto.communityPostId(),
                 dto.type(),
@@ -30,7 +31,8 @@ public record CommunityPostResponse(
                 dto.createdAt(),
                 dto.viewCount(),
                 dto.likeCount(),
-                isWriter
+                isWriter,
+                liked
         );
     }
 }

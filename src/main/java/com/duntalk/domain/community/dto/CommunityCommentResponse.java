@@ -10,9 +10,10 @@ public record CommunityCommentResponse(
     LocalDateTime createdAt,
     int likeCount,
     boolean isWriter,
-    boolean deleted
+    boolean deleted,
+    boolean liked
 ) {
-    public static CommunityCommentResponse from(CommunityCommentDto dto, String writerName, boolean isWriter) {
+    public static CommunityCommentResponse from(CommunityCommentDto dto, String writerName, boolean isWriter, boolean liked) {
         return new CommunityCommentResponse(
                 dto.communityCommentId(),
                 dto.communityCommentParentId(),
@@ -21,7 +22,8 @@ public record CommunityCommentResponse(
                 dto.createdAt(),
                 dto.likeCount(),
                 isWriter,
-                dto.deleted()
+                dto.deleted(),
+                liked
         );
     }
 
@@ -34,7 +36,8 @@ public record CommunityCommentResponse(
                 null,
                 0,
                 false,
-                true
+                true,
+                false
         );
     }
 }

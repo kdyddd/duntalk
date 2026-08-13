@@ -2,7 +2,9 @@ package com.duntalk.domain.community.service;
 
 import com.duntalk.domain.community.dto.*;
 import com.duntalk.domain.community.entity.CommunityPost;
+import com.duntalk.domain.community.entity.CommunityPostLike;
 import com.duntalk.domain.community.repository.CommunityCommentRepository;
+import com.duntalk.domain.community.repository.CommunityPostLikeRepository;
 import com.duntalk.domain.community.repository.CommunityPostRepository;
 import com.duntalk.domain.community.type.CommunityPostSort;
 import com.duntalk.domain.community.type.CommunityType;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class CommunityPostService {
     private final MemberRepository memberRepository;
     private final ItemRepository itemRepository;
     private final CommunityCommentRepository communityCommentRepository;
+    private final CommunityPostLikeRepository communityPostLikeRepository;
 
     public Page<CommunityPostListResponse> getCommunityPostList(CommunityType type, CommunityPostSort postSort, String keyword, Pageable pageable) {
 
@@ -103,7 +107,9 @@ public class CommunityPostService {
 
         boolean isWriter = Objects.equals(post.writerId(), memberId);
 
-        return CommunityPostResponse.from(post, writerName, isWriter);
+        boolean liked = memberId != null && communityPostLikeRepository.findByPostIdAndMemberId(communityPostId, memberId).isPresent();
+
+        return CommunityPostResponse.from(post, writerName, isWriter, liked);
     }
 
     @Transactional
@@ -139,5 +145,27 @@ public class CommunityPostService {
         }
 
         post.delete();
+    }
+
+    @Transactional
+    public void changeLikedPost(Long communityPostId, Integer memberId) {
+        if (memberId == null) {
+            throw new IllegalStateException("게시글을 좋아요 할 권한이 없습니다.");
+        }
+        Optional<CommunityPostLike> postLike = communityPostLikeRepository.findByPostIdAndMemberId(communityPostId, memberId);
+        CommunityPost post = communityPostRepository.findByIdAndDeletedFalse(communityPostId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        if (postLike.isPresent()) {
+            communityPostLikeRepository.delete(postLike.get());
+            post.decreaseLiked();
+        }else {
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("회원을 찾을 수 없습니다."));
+            communityPostLikeRepository.save(CommunityPostLike.create(post, member));
+            post.increaseLiked();
+        }
+
     }
 }
