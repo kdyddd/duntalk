@@ -14,6 +14,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -42,6 +44,14 @@ public class CommunityPostController {
                 : memberPrincipal.memberId();
 
         return communityPostService.getCommunityPost(communityPostId, memberId);
+    }
+
+    @GetMapping("/community/posts/item/{itemId}")
+    public Page<CommunityPostListResponse> getCommunityPostListByItem(
+            @PathVariable("itemId") String itemId,
+            @PageableDefault(size = 5) Pageable pageable
+    ) {
+        return communityPostService.getCommunityPostListByItem(itemId, pageable);
     }
 
     @PostMapping("/community/posts")
@@ -85,7 +95,4 @@ public class CommunityPostController {
                 : memberPrincipal.memberId();
         communityPostService.changeLikedPost(communityPostId, memberId);
     }
-
-
-
 }
