@@ -1,5 +1,6 @@
 package com.duntalk.domain.item.controller;
 
+import com.duntalk.domain.item.dto.ItemAutocompleteResponse;
 import com.duntalk.domain.item.dto.ItemRankingResponse;
 import com.duntalk.domain.item.dto.ItemResponse;
 import com.duntalk.domain.item.dto.ItemStatisticsResponse;
@@ -25,8 +26,12 @@ public class ItemController {
 
     @GetMapping("/items")
     public List<ItemResponse> searchItems(@RequestParam String itemName) {
-
         return itemService.searchItems(itemName);
+    }
+
+    @GetMapping("/items/autocomplete")
+    public List<ItemAutocompleteResponse> searchItemAutocomplete(@RequestParam String itemName) {
+        return itemService.searchItemAutocomplete(itemName);
     }
 
     @GetMapping("/items/{itemId}/statistics")
