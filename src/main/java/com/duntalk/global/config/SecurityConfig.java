@@ -3,6 +3,7 @@ package com.duntalk.global.config;
 import com.duntalk.global.security.OAuthLoginSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -18,18 +19,30 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                .csrf(csrf ->
-                        csrf.ignoringRequestMatchers(
-                                "/members/signup",
-                                "/members/character/equipment",
-                                "/members/character/equipment/confirm"
-                        )
-                )
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(
                                         "/members/character/equipment",
                                         "/members/character/equipment/confirm"
+                                )
+                                .authenticated()
+                                .requestMatchers(
+                                        HttpMethod.POST,
+                                        "/community/posts",
+                                        "/community/posts/*/comments",
+                                        "/community/posts/*/like",
+                                        "/community/comments/*/like"
+                                )
+                                .authenticated()
+                                .requestMatchers(
+                                        HttpMethod.PUT,
+                                        "/community/posts/*"
+                                )
+                                .authenticated()
+                                .requestMatchers(
+                                        HttpMethod.DELETE,
+                                        "/community/posts/*",
+                                        "/community/comments/*"
                                 )
                                 .authenticated()
                                 .anyRequest()
