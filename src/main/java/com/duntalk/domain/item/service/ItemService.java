@@ -1,9 +1,6 @@
 package com.duntalk.domain.item.service;
 
-import com.duntalk.domain.item.dto.ItemResponse;
-import com.duntalk.domain.item.dto.NeopleItemDto;
-import com.duntalk.domain.item.dto.NeopleItemExplainResponse;
-import com.duntalk.domain.item.dto.NeopleItemResponse;
+import com.duntalk.domain.item.dto.*;
 import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +60,12 @@ public class ItemService {
         }
 
         return itemResponses;
+    }
+
+    public List<ItemAutocompleteResponse> searchItemAutocomplete(String itemName) {
+        List<Item> items = itemRepository.findTop20ByItemNameContaining(itemName);
+
+        return items.stream().map(ItemAutocompleteResponse::from).toList();
     }
 
 
