@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -110,6 +111,16 @@ public class CommunityPostService {
         boolean liked = memberId != null && communityPostLikeRepository.findByPostIdAndMemberId(communityPostId, memberId).isPresent();
 
         return CommunityPostResponse.from(post, writerName, isWriter, liked);
+    }
+
+    public Page<CommunityPostListResponse> getCommunityPostListByItem(String itemId, Pageable pageable) {
+        Page<CommunityPostListDto> postListDtos = communityPostRepository.findByItemIdPostList(itemId, pageable);
+
+        return postListDtos.map(postListDto -> {
+            int commentCount = communityCommentRepository.countByPostIdAndDeletedFalse(postListDto.communityPostId());
+            String writerName = postListDto.adventureName() != null ? postListDto.adventureName() : createTemporaryNickname(postListDto.writerId());
+            return CommunityPostListResponse.from(postListDto, writerName, commentCount);
+        });
     }
 
     @Transactional

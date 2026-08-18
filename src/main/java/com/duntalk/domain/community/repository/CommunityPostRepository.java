@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CommunityPostRepository extends JpaRepository<CommunityPost, Long> {
@@ -71,4 +72,27 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     int increaseViewCount(@Param("communityPostId") Long communityPostId);
 
     Optional<CommunityPost> findByIdAndDeletedFalse(Long communityPostId);
+
+    @Query("""
+            SELECT new com.duntalk.domain.community.dto.CommunityPostListDto(
+                c.id,
+                c.type,
+                c.title,
+                c.writer.id,
+                d.adventureName,
+                i.itemId,
+                i.itemName,
+                c.createdAt,
+                c.viewCount,
+                c.likeCount
+            )
+            FROM CommunityPost c
+            LEFT JOIN DnfCharacter d ON d.member = c.writer
+            JOIN c.item i
+            WHERE c.deleted = false
+            AND i.itemId = :itemId
+            ORDER BY createdAt DESC, c.id DESC
+            """)
+    Page<CommunityPostListDto> findByItemIdPostList(@Param("itemId") String itemId, Pageable pageable);
+
 }
