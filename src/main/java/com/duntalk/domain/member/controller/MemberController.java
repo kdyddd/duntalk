@@ -6,6 +6,7 @@ import com.duntalk.domain.member.dto.PendingSignup;
 import com.duntalk.domain.member.entity.Member;
 import com.duntalk.domain.member.service.MemberService;
 import com.duntalk.domain.member.type.ServerId;
+import com.duntalk.global.exception.BadRequestException;
 import com.duntalk.global.security.MemberPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,8 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/members")
@@ -31,10 +30,7 @@ public class MemberController {
         PendingSignup pendingSignup = (PendingSignup) session.getAttribute(PendingSignup.SESSION_KEY);
 
         if (pendingSignup == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "잘못된 회원가입 접근입니다."
-            );
+            throw new BadRequestException("잘못된 회원가입 접근입니다.");
         }
 
         Member member = memberService.signup(pendingSignup);
@@ -49,10 +45,8 @@ public class MemberController {
     }
 
     @GetMapping("/signup-status")
-    public ResponseEntity<Boolean> getSignupStatus(HttpSession session) {
-        boolean signupAllowed = session.getAttribute(PendingSignup.SESSION_KEY) != null;
-
-        return ResponseEntity.ok(signupAllowed);
+    public boolean getSignupStatus(HttpSession session) {
+        return session.getAttribute(PendingSignup.SESSION_KEY) != null;
     }
 
     @GetMapping("/character")

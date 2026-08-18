@@ -7,6 +7,10 @@ import com.duntalk.domain.member.repository.DnfCharacterRepository;
 import com.duntalk.domain.member.repository.MemberRepository;
 import com.duntalk.domain.member.type.ServerId;
 import com.duntalk.domain.member.type.SocialProvider;
+import com.duntalk.global.exception.BadRequestException;
+import com.duntalk.global.exception.ConflictException;
+import com.duntalk.global.exception.ForbiddenException;
+import com.duntalk.global.exception.ResourceNotFoundException;
 import com.duntalk.global.security.MemberPrincipal;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,7 +60,7 @@ public class MemberService {
                 pendingSignup.provider(),
                 pendingSignup.providerId()
         )) {
-            throw new IllegalStateException(
+            throw new ConflictException(
                     "이미 가입된 회원입니다."
             );
         }
@@ -79,7 +83,7 @@ public class MemberService {
 
 
         if (equipmentList.isEmpty()) {
-            throw new IllegalArgumentException("착용한 장비가 없습니다.");
+            throw new ResourceNotFoundException("착용한 장비가 없습니다.");
         }
 
         Random random = new Random();
@@ -100,17 +104,17 @@ public class MemberService {
         PendingCharacterVerification pending = (PendingCharacterVerification) session.getAttribute("PENDING_CHARACTER_VERIFICATION");
 
         if (pending == null) {
-            throw new IllegalStateException("진행 중인 캐릭터 인증이 없습니다.");
+            throw new BadRequestException("진행 중인 캐릭터 인증이 없습니다.");
         }
 
         if (!pending.belongsTo(memberId)) {
             session.removeAttribute("PENDING_CHARACTER_VERIFICATION");
-            throw new IllegalStateException("현재 회원의 인증 요청이 아닙니다.");
+            throw new ForbiddenException("현재 회원의 인증 요청이 아닙니다.");
         }
 
         if (pending.isExpired()) {
             session.removeAttribute("PENDING_CHARACTER_VERIFICATION");
-            throw new IllegalStateException("인증 시간이 만료되었습니다.");
+            throw new BadRequestException("인증 시간이 만료되었습니다.");
         }
 
         NeopleEquipmentResponse neopleEquipmentResponse = neopleMemberApiService.getCharacterEquipmentAll(pending.serverId(), pending.characterId());
@@ -126,9 +130,9 @@ public class MemberService {
 
         if(checkEquipment) {
             Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new IllegalStateException("회원 정보를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new ResourceNotFoundException("회원 정보를 찾을 수 없습니다."));
             if(dnfCharacterRepository.existsById(pending.characterId())) {
-                throw new IllegalStateException("이미 등록된 캐릭터 입니다.");
+                throw new ConflictException("이미 등록된 캐릭터 입니다.");
             }
             member.verifyAdventure();
             dnfCharacterRepository.save(DnfCharacter.create(pending.characterId(), member, pending.serverId(), neopleEquipmentResponse.characterName(), neopleEquipmentResponse.adventureName()));

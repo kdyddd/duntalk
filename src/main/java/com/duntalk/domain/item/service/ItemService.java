@@ -53,12 +53,6 @@ public class ItemService {
             itemResponses.add(ItemResponse.from(newItem));
         }
 
-        if (itemResponses.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "거래 가능한 아이템이 없습니다: " + itemName
-            );
-        }
-
         return itemResponses;
     }
 
@@ -67,7 +61,5 @@ public class ItemService {
 
         return items.stream().map(ItemAutocompleteResponse::from).toList();
     }
-
-
 
 }

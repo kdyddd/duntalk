@@ -1,20 +1,16 @@
 package com.duntalk.domain.member.service;
 
-import com.duntalk.domain.item.dto.NeopleItemExplainResponse;
-import com.duntalk.domain.item.dto.NeopleItemResponse;
+
 import com.duntalk.domain.member.dto.NeopleCharacterDto;
 import com.duntalk.domain.member.dto.NeopleCharacterResponse;
-import com.duntalk.domain.member.dto.NeopleEquipmentDto;
 import com.duntalk.domain.member.dto.NeopleEquipmentResponse;
 import com.duntalk.domain.member.type.ServerId;
+import com.duntalk.global.exception.ExternalApiException;
+import com.duntalk.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,15 +31,17 @@ public class NeopleMemberApiService {
                         .build(serverId.getApiValue()))
                 .retrieve()
                 .bodyToMono(NeopleCharacterResponse.class)
-                .block();
+                .blockOptional()
+                .orElseThrow(() ->
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
 
-        if (response == null || response.rows() == null || response.rows().isEmpty()) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "캐릭터를 찾을 수 없습니다."
-            );
+        if(response.rows() == null) {
+            throw new ExternalApiException("네오플 API 응답 내부 rows가 비어 있습니다.");
         }
 
+        if(response.rows().isEmpty()) {
+            throw new ResourceNotFoundException("캐릭터를 찾을 수 없습니다.");
+        }
         return response.rows().get(0);
     }
 
@@ -55,10 +53,12 @@ public class NeopleMemberApiService {
                         .build(serverId.getApiValue(), characterId))
                 .retrieve()
                 .bodyToMono(NeopleEquipmentResponse.class)
-                .block();
+                .blockOptional()
+                .orElseThrow(() ->
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
 
-        if (response == null || response.equipment() == null) {
-            throw new IllegalStateException("캐릭터 장비 정보를 불러오지 못했습니다.");
+        if(response.equipment() == null) {
+            throw new ExternalApiException("캐릭터 장비 정보를 불러오지 못했습니다.");
         }
 
         return response;

@@ -11,6 +11,9 @@ import com.duntalk.domain.community.repository.CommunityCommentRepository;
 import com.duntalk.domain.community.repository.CommunityPostRepository;
 import com.duntalk.domain.member.entity.Member;
 import com.duntalk.domain.member.repository.MemberRepository;
+import com.duntalk.global.exception.BadRequestException;
+import com.duntalk.global.exception.ForbiddenException;
+import com.duntalk.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,27 +35,27 @@ public class CommunityCommentService {
     public Long createCommunityComment(Long communityPostId, CommunityCommentRequest request, Integer memberId) {
         CommunityPost post = communityPostRepository.findByIdAndDeletedFalse(communityPostId)
                 .orElseThrow(() ->
-                    new IllegalArgumentException("게시글을 찾을 수 없습니다.")
+                    new ResourceNotFoundException("게시글을 찾을 수 없습니다.")
                 );
 
         Member writer = memberRepository.findById(memberId)
                 .orElseThrow(() ->
-                    new IllegalArgumentException("회원을 찾을 수 없습니다.")
+                    new ResourceNotFoundException("회원을 찾을 수 없습니다.")
                 );
 
         CommunityComment parent = request.parentCommentId() == null
                 ? null
                 : communityCommentRepository.findByIdAndDeletedFalse(request.parentCommentId())
                   .orElseThrow(() ->
-                        new IllegalArgumentException("댓글을 찾을 수 없습니다.")
+                        new ResourceNotFoundException("댓글을 찾을 수 없습니다.")
                   );
 
         if (parent != null && !Objects.equals(parent.getPost().getId(), communityPostId)) {
-            throw new IllegalArgumentException("다른 게시글의 댓글에는 답글을 작성할 수 없습니다.");
+            throw new BadRequestException("다른 게시글의 댓글에는 답글을 작성할 수 없습니다.");
         }
 
         if (parent != null && parent.getParent() != null) {
-            throw new IllegalArgumentException("대댓글에는 답글을 작성할 수 없습니다.");
+            throw new BadRequestException("대댓글에는 답글을 작성할 수 없습니다.");
         }
 
         CommunityComment comment = CommunityComment.create(parent, post, writer, request.content());
@@ -63,7 +66,7 @@ public class CommunityCommentService {
     public List<CommunityCommentResponse> getCommunityComments(Long communityPostId, Integer memberId) {
         communityPostRepository.findByIdAndDeletedFalse(communityPostId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("게시글을 찾을 수 없습니다.")
+                        new ResourceNotFoundException("게시글을 찾을 수 없습니다.")
                 );
 
         List<CommunityCommentDto> commentDtos = communityCommentRepository.findCommentList(communityPostId);
@@ -98,11 +101,11 @@ public class CommunityCommentService {
     public void deleteCommunityComment(Long communityCommentId, Integer memberId) {
         CommunityComment comment = communityCommentRepository.findByIdAndDeletedFalse(communityCommentId)
                 .orElseThrow(() ->
-                    new IllegalArgumentException("댓글을 찾을 수 없습니다.")
+                    new ResourceNotFoundException("댓글을 찾을 수 없습니다.")
                 );
 
         if(!Objects.equals(comment.getWriter().getId(), memberId)) {
-            throw new IllegalStateException("댓글을 삭제할 권한이 없습니다.");
+            throw new ForbiddenException("댓글을 삭제할 권한이 없습니다.");
         }
 
         comment.delete();
@@ -110,20 +113,17 @@ public class CommunityCommentService {
 
     @Transactional
     public void changeLikedComment(Long communityCommentId, Integer memberId) {
-        if (memberId == null) {
-            throw new IllegalStateException("댓글을 좋아요 할 권한이 없습니다.");
-        }
         Optional<CommunityCommentLike> commentLike = communityCommentLikeRepository.findByCommentIdAndMemberId(communityCommentId, memberId);
         CommunityComment comment = communityCommentRepository.findByIdAndDeletedFalse(communityCommentId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+                        new ResourceNotFoundException("댓글을 찾을 수 없습니다."));
         if (commentLike.isPresent()) {
             communityCommentLikeRepository.delete(commentLike.get());
             comment.decreaseLiked();
         }else {
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() ->
-                            new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                            new ResourceNotFoundException("회원을 찾을 수 없습니다."));
             communityCommentLikeRepository.save(CommunityCommentLike.create(comment, member));
             comment.increaseLiked();
         }
