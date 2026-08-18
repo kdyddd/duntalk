@@ -1,11 +1,11 @@
 package com.duntalk.domain.item.service;
 
 import com.duntalk.domain.item.dto.*;
+import com.duntalk.global.exception.ExternalApiException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -26,13 +26,15 @@ public class NeopleItemApiService {
                 .queryParam("apikey", apiKey)
                 .build())
                 .retrieve().bodyToMono(NeopleItemResponse.class)
-                .block();
+                .blockOptional()
+                .orElseThrow(() ->
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
 
-        if (response == null || response.getRows() == null || response.getRows().isEmpty()) {
-            return false;
+        if(response.getRows() == null) {
+            throw new ExternalApiException("네오플 API 응답 내부 rows가 비어 있습니다.");
         }
 
-        return true;
+        return !response.getRows().isEmpty();
     }
 
     public boolean hasSaleListing(String itemId) {
@@ -43,13 +45,15 @@ public class NeopleItemApiService {
                         .queryParam("apikey", apiKey)
                         .build())
                 .retrieve().bodyToMono(NeopleItemResponse.class)
-                .block();
+                .blockOptional()
+                .orElseThrow(() ->
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
 
-        if (response == null || response.getRows() == null || response.getRows().isEmpty()) {
-            return false;
+        if(response.getRows() == null) {
+            throw new ExternalApiException("네오플 API 응답 내부 rows가 비어 있습니다.");
         }
 
-        return true;
+        return !response.getRows().isEmpty();
     }
 
     public NeopleItemResponse getItem(String itemName) {
@@ -59,10 +63,12 @@ public class NeopleItemApiService {
                         .queryParam("apikey", apiKey)
                         .build())
                 .retrieve().bodyToMono(NeopleItemResponse.class)
-                .block();
+                .blockOptional()
+                .orElseThrow(() ->
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
 
-        if (response == null || response.getRows() == null || response.getRows().isEmpty()) {
-            throw new IllegalArgumentException("검색 결과가 없습니다: " + itemName);
+        if(response.getRows() == null) {
+            throw new ExternalApiException("네오플 API 응답 내부 rows가 비어 있습니다.");
         }
 
         return response;
@@ -75,21 +81,10 @@ public class NeopleItemApiService {
                         .queryParam("apikey", apiKey)
                         .build(itemId))
                 .retrieve()
-                .onStatus(
-                        status -> status.value() == 404,
-                        response -> Mono.error(
-                                new IllegalArgumentException(
-                                        "아이템 상세정보가 없습니다: " + itemId
-                                )
-                        )
-                )
                 .bodyToMono(NeopleItemExplainResponse.class)
                 .blockOptional()
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "아이템 상세정보 응답이 비어 있습니다: " + itemId
-                        )
-                );
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
     }
 
     public List<NeopleItemAuctionDto> getItemAuctionPrice(String itemId) {
@@ -101,7 +96,13 @@ public class NeopleItemApiService {
                 .queryParam("apikey", apiKey)
                 .build())
                 .retrieve().bodyToMono(NeopleItemAuctionResponse.class)
-                .block();
+                .blockOptional()
+                .orElseThrow(() ->
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
+
+        if(response.getRows() == null) {
+            throw new ExternalApiException("네오플 API 응답 내부 rows가 비어 있습니다.");
+        }
 
         return response.getRows();
     }
@@ -114,7 +115,13 @@ public class NeopleItemApiService {
                         .queryParam("apikey", apiKey)
                         .build())
                 .retrieve().bodyToMono(NeopleItemSaleResponse.class)
-                .block();
+                .blockOptional()
+                .orElseThrow(() ->
+                        new ExternalApiException("네오플 API 응답이 비어 있습니다."));
+
+        if(response.getRows() == null) {
+            throw new ExternalApiException("네오플 API 응답 내부 rows가 비어 있습니다.");
+        }
 
         return response.getRows();
     }

@@ -12,6 +12,8 @@ import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.repository.ItemRepository;
 import com.duntalk.domain.member.entity.Member;
 import com.duntalk.domain.member.repository.MemberRepository;
+import com.duntalk.global.exception.ForbiddenException;
+import com.duntalk.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -72,7 +74,7 @@ public class CommunityPostService {
     public Long createCommunityPost(CommunityPostRequest request, Integer memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("회원을 찾을 수 없습니다.")
+                        new ResourceNotFoundException("회원을 찾을 수 없습니다.")
                 );
 
         Item item = null;
@@ -80,7 +82,7 @@ public class CommunityPostService {
         if (request.itemId() != null) {
             item = itemRepository.findById(request.itemId())
                     .orElseThrow(() ->
-                            new IllegalArgumentException("아이템을 찾을 수 없습니다.")
+                            new ResourceNotFoundException("아이템을 찾을 수 없습니다.")
                     );
         }
 
@@ -100,7 +102,7 @@ public class CommunityPostService {
 
         CommunityPostDto post = communityPostRepository.findPostById(communityPostId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                        new ResourceNotFoundException("게시글을 찾을 수 없습니다."));
 
         String writerName = post.adventureName() != null
                 ? post.adventureName()
@@ -127,10 +129,10 @@ public class CommunityPostService {
     public void updateCommunityPost(CommunityPostRequest request, Long communityPostId, Integer memberId) {
         CommunityPost post = communityPostRepository.findByIdAndDeletedFalse(communityPostId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+                        new ResourceNotFoundException("게시글을 찾을 수 없습니다"));
 
         if(!Objects.equals(post.getWriter().getId(), memberId)) {
-            throw new IllegalStateException("게시글을 수정할 권한이 없습니다.");
+            throw new ForbiddenException("게시글을 수정할 권한이 없습니다.");
         }
 
         Item item = null;
@@ -138,7 +140,7 @@ public class CommunityPostService {
         if (request.itemId() != null) {
             item = itemRepository.findById(request.itemId())
                     .orElseThrow(() ->
-                            new IllegalArgumentException("아이템을 찾을 수 없습니다.")
+                            new ResourceNotFoundException("아이템을 찾을 수 없습니다.")
                     );
         }
 
@@ -149,10 +151,10 @@ public class CommunityPostService {
     public void deleteCommunityPost(Long communityPostId, Integer memberId) {
         CommunityPost post = communityPostRepository.findByIdAndDeletedFalse(communityPostId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("게시글을 찾을 수 없습니다"));
+                        new ResourceNotFoundException("게시글을 찾을 수 없습니다"));
 
         if(!Objects.equals(post.getWriter().getId(), memberId)) {
-            throw new IllegalStateException("게시글을 삭제할 권한이 없습니다.");
+            throw new ForbiddenException("게시글을 삭제할 권한이 없습니다.");
         }
 
         post.delete();
@@ -160,20 +162,17 @@ public class CommunityPostService {
 
     @Transactional
     public void changeLikedPost(Long communityPostId, Integer memberId) {
-        if (memberId == null) {
-            throw new IllegalStateException("게시글을 좋아요 할 권한이 없습니다.");
-        }
         Optional<CommunityPostLike> postLike = communityPostLikeRepository.findByPostIdAndMemberId(communityPostId, memberId);
         CommunityPost post = communityPostRepository.findByIdAndDeletedFalse(communityPostId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                        new ResourceNotFoundException("게시글을 찾을 수 없습니다."));
         if (postLike.isPresent()) {
             communityPostLikeRepository.delete(postLike.get());
             post.decreaseLiked();
         }else {
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() ->
-                            new IllegalArgumentException("회원을 찾을 수 없습니다."));
+                            new ResourceNotFoundException("회원을 찾을 수 없습니다."));
             communityPostLikeRepository.save(CommunityPostLike.create(post, member));
             post.increaseLiked();
         }
