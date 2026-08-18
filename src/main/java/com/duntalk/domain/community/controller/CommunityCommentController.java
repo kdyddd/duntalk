@@ -4,6 +4,7 @@ import com.duntalk.domain.community.dto.CommunityCommentRequest;
 import com.duntalk.domain.community.dto.CommunityCommentResponse;
 import com.duntalk.domain.community.service.CommunityCommentService;
 import com.duntalk.global.security.MemberPrincipal;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class CommunityCommentController {
     @PostMapping("/community/posts/{communityPostId}/comments")
     public Long createCommunityComment(
             @PathVariable("communityPostId") Long communityPostId,
-            @RequestBody CommunityCommentRequest request,
+            @Valid @RequestBody CommunityCommentRequest request,
             @AuthenticationPrincipal MemberPrincipal memberPrincipal
             ) {
         Integer memberId = memberPrincipal == null
