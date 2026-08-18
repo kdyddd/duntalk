@@ -7,6 +7,7 @@ import com.duntalk.domain.community.service.CommunityPostService;
 import com.duntalk.domain.community.type.CommunityPostSort;
 import com.duntalk.domain.community.type.CommunityType;
 import com.duntalk.global.security.MemberPrincipal;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -56,7 +57,7 @@ public class CommunityPostController {
 
     @PostMapping("/community/posts")
     public Long createCommunityPost(
-            @RequestBody CommunityPostRequest request,
+            @Valid @RequestBody CommunityPostRequest request,
             @AuthenticationPrincipal MemberPrincipal memberPrincipal
     ){
         return communityPostService.createCommunityPost(request, memberPrincipal.memberId());
@@ -64,7 +65,7 @@ public class CommunityPostController {
 
     @PutMapping("/community/posts/{communityPostId}")
     public void updateCommunityPost(
-            @RequestBody CommunityPostRequest request,
+            @Valid @RequestBody CommunityPostRequest request,
             @PathVariable("communityPostId") Long communityPostId,
             @AuthenticationPrincipal MemberPrincipal memberPrincipal
     ){
