@@ -9,10 +9,7 @@ import com.duntalk.domain.item.service.ItemService;
 import com.duntalk.domain.item.service.ItemStatisticsService;
 import com.duntalk.domain.item.type.StatisticsInterval;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,6 +24,11 @@ public class ItemController {
     @GetMapping("/items")
     public List<ItemResponse> searchItems(@RequestParam String itemName) {
         return itemService.searchItems(itemName);
+    }
+
+    @PostMapping("/items")
+    public void registerItem(@RequestParam String itemName) {
+        itemService.registerItem(itemName);
     }
 
     @GetMapping("/items/autocomplete")
