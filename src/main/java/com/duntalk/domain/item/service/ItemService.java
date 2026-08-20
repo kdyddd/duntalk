@@ -23,14 +23,21 @@ public class ItemService {
     public List<ItemResponse> searchItems(String itemName) {
         List<Item> items = itemRepository.findByItemNameContaining(itemName);
 
-        if (!items.isEmpty()) {
-            return items.stream()
-                    .map(ItemResponse::from)
-                    .toList();
-        }
+        return items.stream()
+                .map(ItemResponse::from)
+                .toList();
 
+
+    }
+
+    public List<ItemAutocompleteResponse> searchItemAutocomplete(String itemName) {
+        List<Item> items = itemRepository.findTop20ByItemNameContaining(itemName);
+
+        return items.stream().map(ItemAutocompleteResponse::from).toList();
+    }
+
+    public void registerItem(String itemName) {
         NeopleItemResponse response = neopleItemApiService.getItem(itemName);
-        List<ItemResponse> itemResponses = new ArrayList<>();
 
         for (NeopleItemDto dto : response.getRows()) {
             String itemId = dto.getItemId();
@@ -50,16 +57,6 @@ public class ItemService {
             Item newItem = Item.from(dto, explainResponse.getItemExplain());
 
             saveItem(newItem);
-            itemResponses.add(ItemResponse.from(newItem));
         }
-
-        return itemResponses;
     }
-
-    public List<ItemAutocompleteResponse> searchItemAutocomplete(String itemName) {
-        List<Item> items = itemRepository.findTop20ByItemNameContaining(itemName);
-
-        return items.stream().map(ItemAutocompleteResponse::from).toList();
-    }
-
 }
