@@ -5,6 +5,7 @@ import com.duntalk.domain.item.dto.AuctionSummaryResponse;
 import com.duntalk.domain.item.dto.SaleSummaryDto;
 import com.duntalk.domain.item.entity.AuctionHourSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,4 +29,8 @@ public interface AuctionHourSummaryRepository extends JpaRepository<AuctionHourS
     List<AuctionSummaryResponse> findAuctionHourSummaries(@Param("itemId") String itemId,
                                                              @Param("start") LocalDateTime start,
                                                              @Param("end") LocalDateTime end);
+
+    @Modifying
+    @Query("DELETE FROM AuctionHourSummary a WHERE a.startTime < :cutoff")
+    int deleteBefore(@Param("cutoff") LocalDateTime cutoff);
 }

@@ -5,7 +5,9 @@ import com.duntalk.domain.item.dto.SaleSummaryDto;
 import com.duntalk.domain.item.entity.*;
 import com.duntalk.domain.item.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -14,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SummaryService {
@@ -99,7 +102,28 @@ public class SummaryService {
         }
     }
 
+    @Transactional
+    public void deleteSummary () {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime tenMinuteSummary = now.minusHours(36);
+        LocalDateTime hourSummary = now.minusDays(8);
+        LocalDateTime daySummary = now.minusMonths(6).minusDays(7);
 
+        int saleTenMinuteDeleted = saleTenMinuteSummaryRepository.deleteBefore(tenMinuteSummary);
+        int auctionTenMinuteDeleted = auctionTenMinuteSummaryRepository.deleteBefore(tenMinuteSummary);
+        int saleHourDeleted = saleHourSummaryRepository.deleteBefore(hourSummary);
+        int auctionHourDeleted = auctionHourSummaryRepository.deleteBefore(hourSummary);
+        int saleDayDeleted = saleDaySummaryRepository.deleteBefore(daySummary);
+        int auctionDayDeleted = auctionDaySummaryRepository.deleteBefore(daySummary);
 
-
+        log.info(
+                "[통계 데이터 삭제] sale10m={}, auction10m={}, saleHour={}, auctionHour={}, saleDay={}, auctionDay={}",
+                saleTenMinuteDeleted,
+                auctionTenMinuteDeleted,
+                saleHourDeleted,
+                auctionHourDeleted,
+                saleDayDeleted,
+                auctionDayDeleted
+        );
+    }
 }

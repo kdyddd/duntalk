@@ -5,6 +5,7 @@ import com.duntalk.domain.item.dto.SaleSummaryDto;
 import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.entity.ItemSaleHistory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -23,5 +24,9 @@ public interface ItemSaleHistoryRepository extends JpaRepository<ItemSaleHistory
                                          @Param("end") LocalDateTime end);
 
     Optional<ItemSaleHistory> findFirstByItemOrderBySoldDateDescIdDesc(Item item);
+
+    @Modifying
+    @Query("DELETE FROM ItemSaleHistory a WHERE a.soldDate < :cutoff")
+    int deleteBefore(@Param("cutoff") LocalDateTime cutoff);
 
 }
