@@ -4,6 +4,7 @@ import com.duntalk.domain.item.dto.SaleSummaryDto;
 import com.duntalk.domain.item.dto.SaleSummaryResponse;
 import com.duntalk.domain.item.entity.SaleTenMinuteSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,4 +28,8 @@ public interface SaleTenMinuteSummaryRepository extends JpaRepository<SaleTenMin
     List<SaleSummaryResponse> findSaleTenMinuteSummaries(@Param("itemId") String itemId,
                                             @Param("start") LocalDateTime start,
                                              @Param("end") LocalDateTime end);
+
+    @Modifying
+    @Query("DELETE FROM SaleTenMinuteSummary a WHERE a.startTime < :cutoff")
+    int deleteBefore(@Param("cutoff") LocalDateTime cutoff);
 }

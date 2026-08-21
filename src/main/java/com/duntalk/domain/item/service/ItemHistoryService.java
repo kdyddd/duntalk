@@ -9,12 +9,15 @@ import com.duntalk.domain.item.entity.ItemSaleHistory;
 import com.duntalk.domain.item.repository.AuctionTenMinuteSummaryRepository;
 import com.duntalk.domain.item.repository.ItemSaleHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ItemHistoryService {
@@ -60,6 +63,14 @@ public class ItemHistoryService {
         for(Item item : items) {
             saveItemSaleHistory(item);
         }
+    }
+
+    @Transactional
+    public void deleteRawData() {
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(2);
+
+        int deleted = itemSaleHistoryRepository.deleteBefore(cutoff);
+        log.info("[Raw 데이터 삭제] deleted={}", deleted);
     }
 
 }

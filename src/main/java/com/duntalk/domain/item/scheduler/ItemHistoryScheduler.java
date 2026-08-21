@@ -117,6 +117,14 @@ public class ItemHistoryScheduler {
         summaryService.saveAuctionWeekSummary();
     }
 
+    @Scheduled(cron = "0 44 5 * * *")
+    public void autoDeleteOldData() {
+        long start = System.nanoTime();
+        summaryService.deleteSummary();
+        itemHistoryService.deleteRawData();
+        log.info("[데이터 삭제 완료] total={}ms", elapsedMillis(start));
+    }
+
     private long elapsedMillis(long startTime) {
         return (System.nanoTime() - startTime) / 1_000_000;
     }

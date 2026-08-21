@@ -5,6 +5,7 @@ import com.duntalk.domain.item.dto.SaleSummaryDto;
 import com.duntalk.domain.item.dto.SaleSummaryResponse;
 import com.duntalk.domain.item.entity.SaleHourSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -34,4 +35,8 @@ public interface SaleHourSummaryRepository extends JpaRepository<SaleHourSummary
             "FROM SaleHourSummary s " +
             "WHERE s.startTime = :start AND s.totalCount > 0")
     List<SaleRankingDto> findAvgPrices(@Param("start") LocalDateTime start);
+
+    @Modifying
+    @Query("DELETE FROM SaleHourSummary a WHERE a.startTime < :cutoff")
+    int deleteBefore(@Param("cutoff") LocalDateTime cutoff);
 }
