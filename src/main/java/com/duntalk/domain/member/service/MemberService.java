@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -100,6 +101,7 @@ public class MemberService {
     }
 
 
+    @Transactional
     public boolean checkCharacterEquipment(Integer memberId, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         PendingCharacterVerification pending = (PendingCharacterVerification) session.getAttribute("PENDING_CHARACTER_VERIFICATION");
 
