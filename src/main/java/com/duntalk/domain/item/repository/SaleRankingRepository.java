@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface SaleRankingRepository extends JpaRepository<SaleRanking, Long> {
     @Query("SELECT new com.duntalk.domain.item.dto.SaleRankingResponse(" +
@@ -24,5 +25,8 @@ public interface SaleRankingRepository extends JpaRepository<SaleRanking, Long> 
             "WHERE s.startTime = :start AND s.changeRate < 0 " +
             "ORDER BY s.changeRate ASC")
     List<SaleRankingResponse> getFallingItems(@Param("start")LocalDateTime start, Pageable pageable);
+
+    @Query("SELECT MAX(s.startTime) FROM SaleRanking s")
+    Optional<LocalDateTime> findLatestStartTime();
 
 }
