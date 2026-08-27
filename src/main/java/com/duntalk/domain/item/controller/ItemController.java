@@ -9,6 +9,8 @@ import com.duntalk.domain.item.service.ItemService;
 import com.duntalk.domain.item.service.ItemStatisticsService;
 import com.duntalk.domain.item.type.StatisticsInterval;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,8 +24,8 @@ public class ItemController {
     private final ItemRankingService itemRankingService;
 
     @GetMapping("/items")
-    public List<ItemResponse> searchItems(@RequestParam String itemName) {
-        return itemService.searchItems(itemName);
+    public Page<ItemResponse> searchItems(@RequestParam String itemName, Pageable pageable) {
+        return itemService.searchItems(itemName, pageable);
     }
 
     @PostMapping("/items")
