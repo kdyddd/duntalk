@@ -31,6 +31,11 @@ public class ItemController {
         itemService.registerItem(itemName);
     }
 
+    @GetMapping("/items/{itemId}")
+    public ItemResponse getItem(@PathVariable String itemId) {
+        return itemService.getItem(itemId);
+    }
+
     @GetMapping("/items/autocomplete")
     public List<ItemAutocompleteResponse> searchItemAutocomplete(@RequestParam String itemName) {
         return itemService.searchItemAutocomplete(itemName);

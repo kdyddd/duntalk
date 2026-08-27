@@ -3,6 +3,7 @@ package com.duntalk.domain.item.service;
 import com.duntalk.domain.item.dto.*;
 import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.repository.ItemRepository;
+import com.duntalk.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,8 +27,14 @@ public class ItemService {
         return items.stream()
                 .map(ItemResponse::from)
                 .toList();
+    }
 
-
+    public ItemResponse getItem(String itemId) {
+        return itemRepository.findById(itemId)
+                .map(ItemResponse::from)
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("아이템을 찾을 수 없습니다.")
+                );
     }
 
     public List<ItemAutocompleteResponse> searchItemAutocomplete(String itemName) {
