@@ -5,6 +5,8 @@ import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.repository.ItemRepository;
 import com.duntalk.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,12 +23,10 @@ public class ItemService {
         itemRepository.save(item);
     }
 
-    public List<ItemResponse> searchItems(String itemName) {
-        List<Item> items = itemRepository.findByItemNameContaining(itemName);
+    public Page<ItemResponse> searchItems(String itemName, Pageable pageable) {
+        Page<Item> items = itemRepository.findByItemNameContainingOrderByItemNameAsc(itemName, pageable);
 
-        return items.stream()
-                .map(ItemResponse::from)
-                .toList();
+        return items.map(ItemResponse::from);
     }
 
     public ItemResponse getItem(String itemId) {
