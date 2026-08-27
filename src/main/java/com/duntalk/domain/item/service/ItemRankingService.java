@@ -16,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,16 +60,22 @@ public class ItemRankingService {
     }
 
     public ItemRankingResponse getRankings(int limit) {
-        LocalDateTime start = LocalDateTime.now()
-                .truncatedTo(ChronoUnit.HOURS)
-                .minusHours(1);
+        Optional<LocalDateTime> start = saleRankingRepository.findLatestStartTime();
 
+        if(start.isEmpty()) {
+            return new ItemRankingResponse(
+                    List.of(),
+                    List.of()
+            );
+        }
+
+        LocalDateTime latestStart = start.get();
 
         List<SaleRankingResponse> risingItems =
-                saleRankingRepository.getRisingItems(start, PageRequest.of(0, limit));
+                saleRankingRepository.getRisingItems(latestStart, PageRequest.of(0, limit));
 
         List<SaleRankingResponse> fallingItems =
-                saleRankingRepository.getFallingItems(start, PageRequest.of(0, limit));
+                saleRankingRepository.getFallingItems(latestStart, PageRequest.of(0, limit));
 
         return new ItemRankingResponse(
                 risingItems,
