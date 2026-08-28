@@ -59,8 +59,9 @@ public class CommunityCommentService {
         }
 
         CommunityComment comment = CommunityComment.create(parent, post, writer, request.content());
-
-        return communityCommentRepository.save(comment).getId();
+        CommunityComment savedComment = communityCommentRepository.save(comment);
+        communityPostRepository.increaseCommentCount(communityPostId);
+        return savedComment.getId();
     }
 
     public List<CommunityCommentResponse> getCommunityComments(Long communityPostId, Integer memberId) {
@@ -109,6 +110,7 @@ public class CommunityCommentService {
         }
 
         comment.delete();
+        communityPostRepository.decreaseCommentCount(comment.getPost().getId());
     }
 
     @Transactional

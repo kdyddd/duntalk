@@ -14,6 +14,7 @@ public record CommunityPostListDto(
         String itemName,
         LocalDateTime createdAt,
         int viewCount,
-        int likeCount
+        int likeCount,
+        int commentCount
 ) {
 }

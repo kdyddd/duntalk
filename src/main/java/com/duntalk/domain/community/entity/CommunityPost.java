@@ -40,6 +40,8 @@ public class CommunityPost {
 
     private int likeCount;
 
+    private int commentCount;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
