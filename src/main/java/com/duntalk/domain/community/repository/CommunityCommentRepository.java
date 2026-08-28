@@ -31,6 +31,4 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
     List<CommunityCommentDto> findCommentList(@Param("communityPostId") Long communityPostId);
 
     Optional<CommunityComment> findByIdAndDeletedFalse(Long commentId);
-
-    int countByPostIdAndDeletedFalse(Long communityPostId);
 }

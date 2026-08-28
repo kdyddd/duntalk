@@ -27,7 +27,8 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
                 i.itemName,
                 c.createdAt,
                 c.viewCount,
-                c.likeCount
+                c.likeCount,
+                c.commentCount
             )
             FROM CommunityPost c
             LEFT JOIN DnfCharacter d ON d.member = c.writer
@@ -62,15 +63,6 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
             """)
     Optional<CommunityPostDto> findPostById(@Param("communityPostId") Long communityPostId);
 
-    @Modifying
-    @Query("""
-            UPDATE CommunityPost c
-            SET c.viewCount = c.viewCount + 1
-            WHERE c.deleted = false
-            AND c.id = :communityPostId
-            """)
-    int increaseViewCount(@Param("communityPostId") Long communityPostId);
-
     Optional<CommunityPost> findByIdAndDeletedFalse(Long communityPostId);
 
     @Query("""
@@ -84,7 +76,8 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
                 i.itemName,
                 c.createdAt,
                 c.viewCount,
-                c.likeCount
+                c.likeCount,
+                c.commentCount
             )
             FROM CommunityPost c
             LEFT JOIN DnfCharacter d ON d.member = c.writer
@@ -95,4 +88,30 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
             """)
     Page<CommunityPostListDto> findByItemIdPostList(@Param("itemId") String itemId, Pageable pageable);
 
+    @Modifying
+    @Query("""
+            UPDATE CommunityPost c
+            SET c.viewCount = c.viewCount + 1
+            WHERE c.deleted = false
+            AND c.id = :communityPostId
+            """)
+    int increaseViewCount(@Param("communityPostId") Long communityPostId);
+
+    @Modifying
+    @Query("""
+            UPDATE CommunityPost c
+            SET c.commentCount = c.commentCount + 1
+            WHERE c.deleted = false
+            AND c.id = :communityPostId
+            """)
+    void increaseCommentCount(@Param("communityPostId") Long communityPostId);
+
+    @Modifying
+    @Query("""
+            UPDATE CommunityPost c
+            SET c.commentCount = c.commentCount - 1
+            WHERE c.deleted = false
+            AND c.id = :communityPostId
+            """)
+    void decreaseCommentCount(@Param("communityPostId") Long communityPostId);
 }

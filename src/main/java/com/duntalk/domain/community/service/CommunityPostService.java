@@ -33,7 +33,6 @@ public class CommunityPostService {
     private final CommunityPostRepository communityPostRepository;
     private final MemberRepository memberRepository;
     private final ItemRepository itemRepository;
-    private final CommunityCommentRepository communityCommentRepository;
     private final CommunityPostLikeRepository communityPostLikeRepository;
 
     public Page<CommunityPostListResponse> getCommunityPostList(CommunityType type, CommunityPostSort postSort, String keyword, Pageable pageable) {
@@ -54,12 +53,9 @@ public class CommunityPostService {
 
         Page<CommunityPostListDto> postListDtos = communityPostRepository.findPostList(type, keyword, sortedPageable);
 
-
-
         return postListDtos.map(postListDto -> {
-            int commentCount = communityCommentRepository.countByPostIdAndDeletedFalse(postListDto.communityPostId());
             String writerName = postListDto.adventureName() != null ? postListDto.adventureName() : createTemporaryNickname(postListDto.writerId());
-            return CommunityPostListResponse.from(postListDto, writerName, commentCount);
+            return CommunityPostListResponse.from(postListDto, writerName);
         });
 
     }
@@ -119,9 +115,8 @@ public class CommunityPostService {
         Page<CommunityPostListDto> postListDtos = communityPostRepository.findByItemIdPostList(itemId, pageable);
 
         return postListDtos.map(postListDto -> {
-            int commentCount = communityCommentRepository.countByPostIdAndDeletedFalse(postListDto.communityPostId());
             String writerName = postListDto.adventureName() != null ? postListDto.adventureName() : createTemporaryNickname(postListDto.writerId());
-            return CommunityPostListResponse.from(postListDto, writerName, commentCount);
+            return CommunityPostListResponse.from(postListDto, writerName);
         });
     }
 

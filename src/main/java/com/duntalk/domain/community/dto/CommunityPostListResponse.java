@@ -16,7 +16,7 @@ public record CommunityPostListResponse(
         int likeCount,
         int commentCount
 ) {
-    public static CommunityPostListResponse from(CommunityPostListDto dto, String writerName, int commentCount) {
+    public static CommunityPostListResponse from(CommunityPostListDto dto, String writerName) {
         return new CommunityPostListResponse(
                 dto.communityPostId(),
                 dto.type(),
@@ -27,7 +27,7 @@ public record CommunityPostListResponse(
                 dto.createdAt(),
                 dto.viewCount(),
                 dto.likeCount(),
-                commentCount
+                dto.commentCount()
         );
     }
 }
