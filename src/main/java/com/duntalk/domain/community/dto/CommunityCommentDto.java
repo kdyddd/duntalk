@@ -10,6 +10,7 @@ public record CommunityCommentDto(
         String adventureName,
         LocalDateTime createdAt,
         int likeCount,
-        boolean deleted
+        boolean deleted,
+        boolean liked
 ) {
 }

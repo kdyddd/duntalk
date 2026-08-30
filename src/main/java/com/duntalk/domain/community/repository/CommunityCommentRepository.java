@@ -20,15 +20,17 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
                 d.adventureName,
                 c.createdAt,
                 c.likeCount,
-                c.deleted
+                c.deleted,
+                CASE WHEN l.id IS NOT NULL THEN true ELSE false END
             )
             FROM CommunityComment c
             LEFT JOIN c.parent p
             LEFT JOIN DnfCharacter d ON c.writer = d.member
+            LEFT JOIN CommunityCommentLike l ON l.comment = c AND l.member.id = :memberId
             WHERE c.post.id = :communityPostId
             ORDER BY c.createdAt ASC
             """)
-    List<CommunityCommentDto> findCommentList(@Param("communityPostId") Long communityPostId);
+    List<CommunityCommentDto> findCommentList(@Param("communityPostId") Long communityPostId, @Param("memberId") Integer memberId);
 
     Optional<CommunityComment> findByIdAndDeletedFalse(Long commentId);
 }
