@@ -70,7 +70,7 @@ public class CommunityCommentService {
                         new ResourceNotFoundException("게시글을 찾을 수 없습니다.")
                 );
 
-        List<CommunityCommentDto> commentDtos = communityCommentRepository.findCommentList(communityPostId);
+        List<CommunityCommentDto> commentDtos = communityCommentRepository.findCommentList(communityPostId, memberId);
 
         return commentDtos.stream().map(communityCommentDto -> {
 
@@ -83,10 +83,7 @@ public class CommunityCommentService {
                     : communityCommentDto.adventureName();
 
             boolean isWriter = Objects.equals(communityCommentDto.writerId(), memberId);
-
-            boolean liked = memberId != null && communityCommentLikeRepository.findByCommentIdAndMemberId(communityCommentDto.communityCommentId(), memberId).isPresent();
-
-            return CommunityCommentResponse.from(communityCommentDto, writerName, isWriter, liked);
+            return CommunityCommentResponse.from(communityCommentDto, writerName, isWriter);
 
         }).toList();
 

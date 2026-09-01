@@ -13,7 +13,7 @@ public record CommunityCommentResponse(
     boolean deleted,
     boolean liked
 ) {
-    public static CommunityCommentResponse from(CommunityCommentDto dto, String writerName, boolean isWriter, boolean liked) {
+    public static CommunityCommentResponse from(CommunityCommentDto dto, String writerName, boolean isWriter) {
         return new CommunityCommentResponse(
                 dto.communityCommentId(),
                 dto.communityCommentParentId(),
@@ -23,7 +23,7 @@ public record CommunityCommentResponse(
                 dto.likeCount(),
                 isWriter,
                 dto.deleted(),
-                liked
+                dto.liked()
         );
     }
 
