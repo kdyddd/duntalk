@@ -1,8 +1,6 @@
 package com.duntalk.domain.item.service;
 
-import com.duntalk.domain.item.dto.AuctionSummaryDto;
-import com.duntalk.domain.item.dto.NeopleItemAuctionDto;
-import com.duntalk.domain.item.dto.NeopleItemSaleDto;
+import com.duntalk.domain.item.dto.*;
 import com.duntalk.domain.item.entity.AuctionTenMinuteSummary;
 import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.entity.ItemSaleHistory;
@@ -10,12 +8,19 @@ import com.duntalk.domain.item.repository.AuctionTenMinuteSummaryRepository;
 import com.duntalk.domain.item.repository.ItemSaleHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Service
@@ -25,28 +30,74 @@ public class ItemHistoryService {
     private final NeopleItemApiService neopleItemApiService;
     private final ItemSaleHistoryRepository itemSaleHistoryRepository;
     private final AuctionTenMinuteSummaryRepository auctionTenMinuteSummaryRepository;
-
-    public void saveItemSaleHistory(Item item) {
-        List<NeopleItemSaleDto> dtoList = neopleItemApiService.getItemSalePrice(item.getItemId());
-        ItemSaleHistory latestItemSaleHistory = itemSaleHistoryRepository.findFirstByItemOrderBySoldDateDescIdDesc(item).orElse(null);
-        for(NeopleItemSaleDto dto : dtoList) {
-            if(latestItemSaleHistory != null
-                    && latestItemSaleHistory.getSoldDate().equals(dto.getSoldDate())
-                    && latestItemSaleHistory.getCount() == dto.getCount()
-                    && latestItemSaleHistory.getPrice().equals(dto.getPrice())) {
-                break;
-            }
-            ItemSaleHistory itemSaleHistory = ItemSaleHistory.from(dto,item);
-            itemSaleHistoryRepository.save(itemSaleHistory);
-        }
-    }
+    private final ThreadPoolTaskExecutor apiExecutor;
 
     public void saveAuctionTenMinuteSummary(List<Item> items) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime start = now.truncatedTo(ChronoUnit.MINUTES)
                 .withMinute(now.getMinute() / 10 * 10);
+        AtomicBoolean stopRequested = new AtomicBoolean(false);
+        List<CompletableFuture<ItemAuctionApiResult>> futures = new ArrayList<>();
         for(Item item : items) {
-            List<NeopleItemAuctionDto> dtoList = neopleItemApiService.getItemAuctionPrice(item.getItemId());
+            CompletableFuture<ItemAuctionApiResult> future = CompletableFuture.supplyAsync(
+                    () -> {
+                        if(stopRequested.get()) {
+                            return null;
+                        }
+                        try {
+                            List<NeopleItemAuctionDto> dtoList = neopleItemApiService.getItemAuctionPrice(item.getItemId());
+                            return new ItemAuctionApiResult(item, dtoList);
+                        } catch (WebClientResponseException e) {
+                            NeopleApiErrorResponse errorResponse = e.getResponseBodyAs(NeopleApiErrorResponse.class);
+                            String errorCode = null;
+
+                            if (errorResponse != null && errorResponse.error() != null) {
+                                errorCode = errorResponse.error().code();
+                            }
+
+                            if ("DNF980".equals(errorCode)
+                                    || "API002".equals(errorCode)
+                                    || "API008".equals(errorCode)) {
+
+                                stopRequested.set(true);
+                                throw e;
+                            }
+
+                            log.warn("개별 네오플 API AuctionSummary 호출 실패 itemId={}, code={}", item.getItemId(), errorCode);
+
+                            return null;
+                        } catch (WebClientRequestException e) {
+                            stopRequested.set(true);
+                            throw e;
+                        }
+
+                    },
+                    apiExecutor
+            );
+            futures.add(future);
+        }
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof WebClientResponseException webClientResponseException) {
+                throw webClientResponseException;
+            }
+
+            if (e.getCause() instanceof WebClientRequestException webClientRequestException) {
+                throw webClientRequestException;
+            }
+
+            throw e;
+        }
+
+        for(CompletableFuture<ItemAuctionApiResult> future : futures) {
+            ItemAuctionApiResult result = future.join();
+            if (result == null) {
+                continue;
+            }
+            List<NeopleItemAuctionDto> dtoList = result.auctions();
+            Item item = result.item();
+
             if(!dtoList.isEmpty()) {
                 int minPrice = dtoList.get(0).getUnitPrice();
                 long count = 0;
@@ -60,9 +111,91 @@ public class ItemHistoryService {
     }
 
     public void saveAllItemSaleHistory(List<Item> items) {
+        AtomicBoolean stopRequested = new AtomicBoolean(false);
+
+        List<CompletableFuture<ItemSaleApiResult>> futures = new ArrayList<>();
+        long apiStart = System.nanoTime();
         for(Item item : items) {
-            saveItemSaleHistory(item);
+            CompletableFuture<ItemSaleApiResult> future = CompletableFuture.supplyAsync(
+                    () -> {
+                        if(stopRequested.get()) {
+                            return null;
+                        }
+                        try {
+                            List<NeopleItemSaleDto> dtoList = neopleItemApiService.getItemSalePrice(item.getItemId());
+                            return new ItemSaleApiResult(item, dtoList);
+                        } catch (WebClientResponseException e) {
+                            NeopleApiErrorResponse errorResponse = e.getResponseBodyAs(NeopleApiErrorResponse.class);
+                            String errorCode = null;
+
+                            if (errorResponse != null && errorResponse.error() != null) {
+                                errorCode = errorResponse.error().code();
+                            }
+
+
+
+                            if ("DNF980".equals(errorCode)
+                                    || "API002".equals(errorCode)
+                                    || "API008".equals(errorCode)) {
+                                log.error("네오플 API 전체 중단 오류 itemId={}, code={}, body={}",
+                                        item.getItemId(),
+                                        errorCode,
+                                        e.getResponseBodyAsString());
+                                stopRequested.set(true);
+                                throw e;
+                            }
+
+                            log.warn("개별 네오플 API SaleHistory 호출 실패 itemId={}, code={}", item.getItemId(), errorCode);
+
+                            return null;
+                        } catch (WebClientRequestException e) {
+                            stopRequested.set(true);
+                            throw e;
+                        }
+
+                    },
+                    apiExecutor
+            );
+            futures.add(future);
         }
+        try {
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof WebClientResponseException webClientResponseException) {
+                throw webClientResponseException;
+            }
+
+            if (e.getCause() instanceof WebClientRequestException webClientRequestException) {
+                throw webClientRequestException;
+            }
+
+            throw e;
+        }
+        long apiEnd = System.nanoTime();
+
+        for(CompletableFuture<ItemSaleApiResult> future : futures) {
+            ItemSaleApiResult result = future.join();
+            if (result == null) {
+                continue;
+            }
+            List<NeopleItemSaleDto> dtoList = result.sales();
+            Item item = result.item();
+            ItemSaleHistory latestItemSaleHistory = itemSaleHistoryRepository.findFirstByItemOrderBySoldDateDescIdDesc(item).orElse(null);
+            for(NeopleItemSaleDto dto : dtoList) {
+                if(latestItemSaleHistory != null
+                        && latestItemSaleHistory.getSoldDate().equals(dto.getSoldDate())
+                        && latestItemSaleHistory.getCount() == dto.getCount()
+                        && latestItemSaleHistory.getPrice().equals(dto.getPrice())) {
+                    break;
+                }
+                ItemSaleHistory itemSaleHistory = ItemSaleHistory.from(dto,item);
+                itemSaleHistoryRepository.save(itemSaleHistory);
+            }
+        }
+        long dbEnd = System.nanoTime();
+        log.info("[Sale 시간 분석] api={}ms, db={}ms",
+                (apiEnd - apiStart) / 1_000_000,
+                (dbEnd - apiEnd) / 1_000_000);
     }
 
     @Transactional
