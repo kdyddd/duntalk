@@ -42,8 +42,9 @@ flowchart TB
     N -->|/api 요청| A["Spring Boot · 내부 8080"]
     A --> D["MySQL"]
     S["수집 스케줄러 · 10분 주기"] --> C["API 수집·통계 저장"]
-    C --> E["Neople API"]
-    C --> D
+    C -->|"시세 조회 요청"| E["Neople API"]
+    E -->|"판매 내역 · 경매 매물"| C
+    C -->|"통계 저장"| D
 ```
 
 Nginx가 React 정적 파일을 제공하고, `/api` 요청을 Spring Boot로 전달합니다.
