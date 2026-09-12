@@ -1,8 +1,12 @@
+param(
+    [Parameter(Mandatory = $true)]
+    [string]$ServerIp
+)g
+
 $ErrorActionPreference = "Stop"
 
 Set-Location $PSScriptRoot
 
-$ServerIp = "15.165.113.0"
 $SshUser = "ubuntu"
 $SshKey = Join-Path $HOME ".ssh\duntalk-github-actions"
 
