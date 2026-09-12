@@ -11,8 +11,8 @@ public class AsyncConfig {
     public ThreadPoolTaskExecutor apiExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-        executor.setCorePoolSize(8);
-        executor.setMaxPoolSize(8);
+        executor.setCorePoolSize(20);
+        executor.setMaxPoolSize(20);
         executor.setQueueCapacity(5000);
         executor.setThreadNamePrefix("neople-api");
 

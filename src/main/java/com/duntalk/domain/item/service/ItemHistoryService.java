@@ -6,6 +6,7 @@ import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.entity.ItemSaleHistory;
 import com.duntalk.domain.item.repository.AuctionTenMinuteSummaryRepository;
 import com.duntalk.domain.item.repository.ItemSaleHistoryRepository;
+import io.github.resilience4j.ratelimiter.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -31,6 +32,7 @@ public class ItemHistoryService {
     private final ItemSaleHistoryRepository itemSaleHistoryRepository;
     private final AuctionTenMinuteSummaryRepository auctionTenMinuteSummaryRepository;
     private final ThreadPoolTaskExecutor apiExecutor;
+    private final RateLimiter neopleRateLimiter;
 
     public void saveAuctionTenMinuteSummary(List<Item> items) {
         LocalDateTime now = LocalDateTime.now();
@@ -38,6 +40,7 @@ public class ItemHistoryService {
                 .withMinute(now.getMinute() / 10 * 10);
         AtomicBoolean stopRequested = new AtomicBoolean(false);
         List<CompletableFuture<ItemAuctionApiResult>> futures = new ArrayList<>();
+        long apiStart = System.nanoTime();
         for(Item item : items) {
             CompletableFuture<ItemAuctionApiResult> future = CompletableFuture.supplyAsync(
                     () -> {
@@ -45,25 +48,47 @@ public class ItemHistoryService {
                             return null;
                         }
                         try {
+                            if (!neopleRateLimiter.acquirePermission()) {
+                                throw new IllegalStateException("Neople API RateLimiter permission 획득 실패");
+                            }
+
+                            if(stopRequested.get()) {
+                                return null;
+                            }
+
                             List<NeopleItemAuctionDto> dtoList = neopleItemApiService.getItemAuctionPrice(item.getItemId());
                             return new ItemAuctionApiResult(item, dtoList);
                         } catch (WebClientResponseException e) {
                             NeopleApiErrorResponse errorResponse = e.getResponseBodyAs(NeopleApiErrorResponse.class);
                             String errorCode = null;
+                            String errorMessage = null;
 
                             if (errorResponse != null && errorResponse.error() != null) {
                                 errorCode = errorResponse.error().code();
+                                errorMessage = errorResponse.error().message();
                             }
 
                             if ("DNF980".equals(errorCode)
                                     || "API002".equals(errorCode)
                                     || "API008".equals(errorCode)) {
-
+                                log.error("네오플 API 전체 중단 오류 itemId={}, status={}, code={}, message={}, body={}",
+                                        item.getItemId(),
+                                        e.getStatusCode().value(),
+                                        errorCode,
+                                        errorMessage,
+                                        e.getResponseBodyAsString()
+                                );
                                 stopRequested.set(true);
                                 throw e;
                             }
 
-                            log.warn("개별 네오플 API AuctionSummary 호출 실패 itemId={}, code={}", item.getItemId(), errorCode);
+                            log.warn("개별 네오플 API AuctionSummary 호출 실패 itemId={}, status={}, code={}, message={}, body={}",
+                                    item.getItemId(),
+                                    e.getStatusCode().value(),
+                                    errorCode,
+                                    errorMessage,
+                                    e.getResponseBodyAsString()
+                            );
 
                             return null;
                         } catch (WebClientRequestException e) {
@@ -89,7 +114,7 @@ public class ItemHistoryService {
 
             throw e;
         }
-
+        long apiEnd = System.nanoTime();
         for(CompletableFuture<ItemAuctionApiResult> future : futures) {
             ItemAuctionApiResult result = future.join();
             if (result == null) {
@@ -108,6 +133,10 @@ public class ItemHistoryService {
                 auctionTenMinuteSummaryRepository.save(AuctionTenMinuteSummary.from(summaryDto, start));
             }
         }
+        long dbEnd = System.nanoTime();
+        log.info("[Auction 시간 분석] api={}ms, db={}ms",
+                (apiEnd - apiStart) / 1_000_000,
+                (dbEnd - apiEnd) / 1_000_000);
     }
 
     public void saveAllItemSaleHistory(List<Item> items) {
@@ -122,30 +151,46 @@ public class ItemHistoryService {
                             return null;
                         }
                         try {
+                            if (!neopleRateLimiter.acquirePermission()) {
+                                throw new IllegalStateException("Neople API RateLimiter permission 획득 실패");
+                            }
+
+                            if(stopRequested.get()) {
+                                return null;
+                            }
                             List<NeopleItemSaleDto> dtoList = neopleItemApiService.getItemSalePrice(item.getItemId());
                             return new ItemSaleApiResult(item, dtoList);
                         } catch (WebClientResponseException e) {
                             NeopleApiErrorResponse errorResponse = e.getResponseBodyAs(NeopleApiErrorResponse.class);
                             String errorCode = null;
+                            String errorMessage = null;
 
                             if (errorResponse != null && errorResponse.error() != null) {
                                 errorCode = errorResponse.error().code();
+                                errorMessage = errorResponse.error().message();
                             }
-
-
 
                             if ("DNF980".equals(errorCode)
                                     || "API002".equals(errorCode)
                                     || "API008".equals(errorCode)) {
-                                log.error("네오플 API 전체 중단 오류 itemId={}, code={}, body={}",
+                                log.error("네오플 API 전체 중단 오류 itemId={}, status={}, code={}, message={}, body={}",
                                         item.getItemId(),
+                                        e.getStatusCode().value(),
                                         errorCode,
-                                        e.getResponseBodyAsString());
+                                        errorMessage,
+                                        e.getResponseBodyAsString()
+                                );
                                 stopRequested.set(true);
                                 throw e;
                             }
 
-                            log.warn("개별 네오플 API SaleHistory 호출 실패 itemId={}, code={}", item.getItemId(), errorCode);
+                            log.warn("개별 네오플 API AuctionSummary 호출 실패 itemId={}, status={}, code={}, message={}, body={}",
+                                    item.getItemId(),
+                                    e.getStatusCode().value(),
+                                    errorCode,
+                                    errorMessage,
+                                    e.getResponseBodyAsString()
+                            );
 
                             return null;
                         } catch (WebClientRequestException e) {
