@@ -23,7 +23,17 @@ public interface ItemSaleHistoryRepository extends JpaRepository<ItemSaleHistory
     List<SaleSummaryDto> findSaleSummary(@Param("start") LocalDateTime start,
                                          @Param("end") LocalDateTime end);
 
-    Optional<ItemSaleHistory> findFirstByItemOrderBySoldDateDescIdDesc(Item item);
+    @Query("""
+    SELECT h
+    FROM ItemSaleHistory h
+    WHERE h.item = :item
+      AND h.soldDate = (
+          SELECT MAX(h2.soldDate)
+          FROM ItemSaleHistory h2
+          WHERE h2.item = :item
+      )
+    """)
+    List<ItemSaleHistory> findLatestGroupByItem(@Param("item") Item item);
 
     @Modifying
     @Query("DELETE FROM ItemSaleHistory a WHERE a.soldDate < :cutoff")
