@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -184,7 +186,7 @@ public class ItemHistoryService {
                                 throw e;
                             }
 
-                            log.warn("개별 네오플 API AuctionSummary 호출 실패 itemId={}, status={}, code={}, message={}, body={}",
+                            log.warn("개별 네오플 API SaleHistory 호출 실패 itemId={}, status={}, code={}, message={}, body={}",
                                     item.getItemId(),
                                     e.getStatusCode().value(),
                                     errorCode,
@@ -225,14 +227,60 @@ public class ItemHistoryService {
             }
             List<NeopleItemSaleDto> dtoList = result.sales();
             Item item = result.item();
-            ItemSaleHistory latestItemSaleHistory = itemSaleHistoryRepository.findFirstByItemOrderBySoldDateDescIdDesc(item).orElse(null);
+            List<ItemSaleHistory> latestItemSaleHistoryList =
+                    itemSaleHistoryRepository.findLatestGroupByItem(item);
+
+            if (latestItemSaleHistoryList.isEmpty()) {
+                for(NeopleItemSaleDto dto : dtoList) {
+                    ItemSaleHistory itemSaleHistory = ItemSaleHistory.from(dto,item);
+                    itemSaleHistoryRepository.save(itemSaleHistory);
+                }
+                continue;
+            }
+
+            LocalDateTime latestSoldDate = latestItemSaleHistoryList.get(0).getSoldDate();
+            Map<SaleKey, Integer> latestSaleCountMap = new HashMap<>();
+
+            for(ItemSaleHistory itemSaleHistory : latestItemSaleHistoryList) {
+                SaleKey saleKey = new SaleKey(
+                        itemSaleHistory.getCount(),
+                        itemSaleHistory.getPrice()
+                );
+
+                latestSaleCountMap.put(
+                        saleKey,
+                        latestSaleCountMap.getOrDefault(saleKey, 0) + 1
+                );
+            }
+
             for(NeopleItemSaleDto dto : dtoList) {
-                if(latestItemSaleHistory != null
-                        && latestItemSaleHistory.getSoldDate().equals(dto.getSoldDate())
-                        && latestItemSaleHistory.getCount() == dto.getCount()
-                        && latestItemSaleHistory.getPrice().equals(dto.getPrice())) {
+                if(latestSaleCountMap.isEmpty()) {
                     break;
                 }
+
+                if (dto.getSoldDate().isAfter(latestSoldDate)) {
+                    ItemSaleHistory itemSaleHistory = ItemSaleHistory.from(dto,item);
+                    itemSaleHistoryRepository.save(itemSaleHistory);
+                    continue;
+                }
+
+                if (dto.getSoldDate().isBefore(latestSoldDate)) {
+                    break;
+                }
+
+                SaleKey saleKey = new SaleKey(dto.getCount(), dto.getPrice());
+
+                if(latestSaleCountMap.containsKey(saleKey)) {
+                    Integer count = latestSaleCountMap.get(saleKey);
+                    latestSaleCountMap.put(saleKey, count - 1);
+
+                    if (count - 1 == 0) {
+                        latestSaleCountMap.remove(saleKey);
+                    }
+
+                    continue;
+                }
+
                 ItemSaleHistory itemSaleHistory = ItemSaleHistory.from(dto,item);
                 itemSaleHistoryRepository.save(itemSaleHistory);
             }
@@ -251,4 +299,9 @@ public class ItemHistoryService {
         log.info("[Raw 데이터 삭제] deleted={}", deleted);
     }
 
+    private record SaleKey(
+            int count,
+            Long price
+    ) {
+    }
 }
