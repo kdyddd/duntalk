@@ -8,6 +8,8 @@ import com.duntalk.domain.item.repository.SaleDaySummaryRepository;
 import com.duntalk.domain.item.repository.SaleHourSummaryRepository;
 import com.duntalk.domain.item.repository.SaleRankingRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ public class ItemRankingService {
     private final SaleDaySummaryRepository saleDaySummaryRepository;
     private final SaleRankingRepository saleRankingRepository;
 
+    @CacheEvict(cacheNames = "itemRankings", allEntries = true)
     public void updateRanking() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime hourStart = now.truncatedTo(ChronoUnit.HOURS).minusHours(1);
@@ -59,6 +62,7 @@ public class ItemRankingService {
         saleRankingRepository.saveAll(rankings);
     }
 
+    @Cacheable(cacheNames = "itemRankings", key = "#limit")
     public ItemRankingResponse getRankings(int limit) {
         Optional<LocalDateTime> start = saleRankingRepository.findLatestStartTime();
 
