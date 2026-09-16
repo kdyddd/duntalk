@@ -7,6 +7,7 @@ import com.duntalk.domain.item.entity.SaleRanking;
 import com.duntalk.domain.item.repository.SaleDaySummaryRepository;
 import com.duntalk.domain.item.repository.SaleHourSummaryRepository;
 import com.duntalk.domain.item.repository.SaleRankingRepository;
+import com.duntalk.domain.item.repository.SaleTenMinuteSummaryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ItemRankingService {
 
-    private final SaleHourSummaryRepository saleHourSummaryRepository;
+    private final SaleTenMinuteSummaryRepository saleTenMinuteSummaryRepository;
     private final SaleDaySummaryRepository saleDaySummaryRepository;
     private final SaleRankingRepository saleRankingRepository;
 
@@ -34,13 +35,15 @@ public class ItemRankingService {
     @CacheEvict(cacheNames = "itemRankings", allEntries = true, condition = "#result == true")
     public boolean updateRanking() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime hourStart = now.truncatedTo(ChronoUnit.HOURS).minusHours(1);
+        LocalDateTime end = now.truncatedTo(ChronoUnit.MINUTES);
+        end = end.withMinute(end.getMinute() / 10 * 10);
+        LocalDateTime tenMinuteStart = end.minusMinutes(10);
         LocalDateTime dayStart = now.toLocalDate().minusDays(1).atStartOfDay();
 
-        List<SaleRankingDto> hourSummaries = saleHourSummaryRepository.findAvgPrices(hourStart);
+        List<SaleRankingDto> tenMinuteSummaries = saleTenMinuteSummaryRepository.findAvgPrices(tenMinuteStart);
         List<SaleRankingDto> daySummaries = saleDaySummaryRepository.findAvgPrices(dayStart);
 
-        if (hourSummaries.isEmpty() || daySummaries.isEmpty()) {
+        if (tenMinuteSummaries.isEmpty() || daySummaries.isEmpty()) {
             return false;
         }
 
@@ -52,16 +55,16 @@ public class ItemRankingService {
                         ));
         List<SaleRanking> rankings = new ArrayList<>();
 
-        for(SaleRankingDto hourSummary : hourSummaries) {
-            Integer dayAvgPrice = daySummaryMap.get(hourSummary.getItem().getItemId());
+        for(SaleRankingDto tenMinuteSummary : tenMinuteSummaries) {
+            Integer dayAvgPrice = daySummaryMap.get(tenMinuteSummary.getItem().getItemId());
 
             if(dayAvgPrice == null || dayAvgPrice == 0) {
                 continue;
             }
 
-            double changeRate = ((double) hourSummary.getAvgPrice() - dayAvgPrice) / dayAvgPrice * 100;
+            double changeRate = ((double) tenMinuteSummary.getAvgPrice() - dayAvgPrice) / dayAvgPrice * 100;
 
-            rankings.add(SaleRanking.create(hourSummary.getItem(), changeRate, hourStart));
+            rankings.add(SaleRanking.create(tenMinuteSummary.getItem(), changeRate, tenMinuteStart));
 
         }
         if (rankings.isEmpty()) {

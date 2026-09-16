@@ -132,26 +132,26 @@ public class ItemHistoryScheduler {
             }
         }
 
-        if (cycleTime.getMinute() == 0) {
-            long start = System.nanoTime();
 
-            try {
-                boolean updated = itemRankingService.updateRanking();
+        long rankingStart = System.nanoTime();
 
-                if (updated) {
-                    log.info("[랭킹 갱신 완료] total={}ms", elapsedMillis(start));
-                } else {
-                    log.warn("[랭킹 갱신 건너뜀] 필요한 통계 데이터 없음, total={}ms", elapsedMillis(start));
-                }
-            } catch (Exception e) {
-                log.error(
-                        "[랭킹 갱신 실패] message={}, total={}ms",
-                        e.getMessage(),
-                        elapsedMillis(start),
-                        e
-                );
+        try {
+            boolean updated = itemRankingService.updateRanking();
+
+            if (updated) {
+                log.info("[랭킹 갱신 완료] total={}ms", elapsedMillis(rankingStart));
+            } else {
+                log.warn("[랭킹 갱신 건너뜀] 필요한 통계 데이터 없음, total={}ms", elapsedMillis(rankingStart));
             }
+        } catch (Exception e) {
+            log.error(
+                    "[랭킹 갱신 실패] message={}, total={}ms",
+                    e.getMessage(),
+                    elapsedMillis(rankingStart),
+                    e
+            );
         }
+
 
         if (cycleTime.getDayOfWeek() == DayOfWeek.MONDAY && cycleTime.getHour() == 4 && cycleTime.getMinute() == 0) {
             long start = System.nanoTime();
