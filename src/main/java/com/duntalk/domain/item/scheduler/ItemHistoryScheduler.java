@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -26,6 +28,7 @@ public class ItemHistoryScheduler {
 
     @Scheduled(cron = "0 0/10 * * * *")
     public void autoSaveAllItemHistory() {
+        LocalDateTime cycleTime = LocalDateTime.now();
         long totalStart = System.nanoTime();
 
         try {
@@ -66,16 +69,16 @@ public class ItemHistoryScheduler {
                         "[10분 수집 중단] 네오플 API 점검 중, status=503, total={}ms",
                         totalMs
                 );
-                return;
+            } else {
+                log.error(
+                        "[10분 수집 실패] 네오플 API 오류, status={}, message={}, total={}ms",
+                        status,
+                        e.getMessage(),
+                        totalMs,
+                        e
+                );
             }
 
-            log.error(
-                    "[10분 수집 실패] 네오플 API 오류, status={}, message={}, total={}ms",
-                    status,
-                    e.getMessage(),
-                    totalMs,
-                    e
-            );
 
         } catch (WebClientRequestException e) {
             log.warn(
@@ -92,29 +95,80 @@ public class ItemHistoryScheduler {
                     e
             );
         }
-    }
 
-    @Scheduled(cron = "0 4 * * * *")
-    public void autoSaveHourSummary () {
-        summaryService.saveSaleHourSummary();
-        summaryService.saveAuctionHourSummary();
-    }
+        if (cycleTime.getMinute() == 0) {
+            long start = System.nanoTime();
 
-    @Scheduled(cron = "0 5 0 * * *")
-    public void autoSaveDaySummary () {
-        summaryService.saveSaleDaySummary();
-        summaryService.saveAuctionDaySummary();
-    }
+            try {
+                summaryService.saveSaleHourSummary();
+                summaryService.saveAuctionHourSummary();
 
-    @Scheduled(cron = "0 6 * * * *")
-    public void autoUpdateRanking () {
-        itemRankingService.updateRanking();
-    }
+                log.info("[시간 통계 완료] total={}ms", elapsedMillis(start));
+            } catch (Exception e) {
+                log.error(
+                        "[시간 통계 실패] message={}, total={}ms",
+                        e.getMessage(),
+                        elapsedMillis(start),
+                        e
+                );
+            }
+        }
 
-    @Scheduled(cron = "0 0 4 * * MON")
-    public void autoSaveWeekSummary () {
-        summaryService.saveSaleWeekSummary();
-        summaryService.saveAuctionWeekSummary();
+        if (cycleTime.getHour() == 0 && cycleTime.getMinute() == 0) {
+            long start = System.nanoTime();
+
+            try {
+                summaryService.saveSaleDaySummary();
+                summaryService.saveAuctionDaySummary();
+
+                log.info("[일간 통계 완료] total={}ms", elapsedMillis(start));
+            } catch (Exception e) {
+                log.error(
+                        "[일간 통계 실패] message={}, total={}ms",
+                        e.getMessage(),
+                        elapsedMillis(start),
+                        e
+                );
+            }
+        }
+
+        if (cycleTime.getMinute() == 0) {
+            long start = System.nanoTime();
+
+            try {
+                boolean updated = itemRankingService.updateRanking();
+
+                if (updated) {
+                    log.info("[랭킹 갱신 완료] total={}ms", elapsedMillis(start));
+                } else {
+                    log.warn("[랭킹 갱신 건너뜀] 필요한 통계 데이터 없음, total={}ms", elapsedMillis(start));
+                }
+            } catch (Exception e) {
+                log.error(
+                        "[랭킹 갱신 실패] message={}, total={}ms",
+                        e.getMessage(),
+                        elapsedMillis(start),
+                        e
+                );
+            }
+        }
+
+        if (cycleTime.getDayOfWeek() == DayOfWeek.MONDAY && cycleTime.getHour() == 4 && cycleTime.getMinute() == 0) {
+            long start = System.nanoTime();
+
+            try {
+                summaryService.saveSaleWeekSummary();
+                summaryService.saveAuctionWeekSummary();
+                log.info("[주간 통계 완료] total={}ms", elapsedMillis(start));
+            } catch (Exception e) {
+                log.error(
+                        "[주간 통계 실패] message={}, total={}ms",
+                        e.getMessage(),
+                        elapsedMillis(start),
+                        e
+                );
+            }
+        }
     }
 
     @Scheduled(cron = "0 44 5 * * *")
