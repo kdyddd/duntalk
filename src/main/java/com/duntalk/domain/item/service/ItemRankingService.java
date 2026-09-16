@@ -12,6 +12,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -29,14 +30,19 @@ public class ItemRankingService {
     private final SaleDaySummaryRepository saleDaySummaryRepository;
     private final SaleRankingRepository saleRankingRepository;
 
-    @CacheEvict(cacheNames = "itemRankings", allEntries = true)
-    public void updateRanking() {
+    @Transactional
+    @CacheEvict(cacheNames = "itemRankings", allEntries = true, condition = "#result == true")
+    public boolean updateRanking() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime hourStart = now.truncatedTo(ChronoUnit.HOURS).minusHours(1);
         LocalDateTime dayStart = now.toLocalDate().minusDays(1).atStartOfDay();
 
         List<SaleRankingDto> hourSummaries = saleHourSummaryRepository.findAvgPrices(hourStart);
         List<SaleRankingDto> daySummaries = saleDaySummaryRepository.findAvgPrices(dayStart);
+
+        if (hourSummaries.isEmpty() || daySummaries.isEmpty()) {
+            return false;
+        }
 
         Map<String, Integer> daySummaryMap =
                 daySummaries.stream()
@@ -58,28 +64,23 @@ public class ItemRankingService {
             rankings.add(SaleRanking.create(hourSummary.getItem(), changeRate, hourStart));
 
         }
+        if (rankings.isEmpty()) {
+            return false;
+        }
 
+        saleRankingRepository.deleteAllInBatch();
         saleRankingRepository.saveAll(rankings);
+        return true;
     }
 
     @Cacheable(cacheNames = "itemRankings", key = "#limit")
     public ItemRankingResponse getRankings(int limit) {
-        Optional<LocalDateTime> start = saleRankingRepository.findLatestStartTime();
-
-        if(start.isEmpty()) {
-            return new ItemRankingResponse(
-                    List.of(),
-                    List.of()
-            );
-        }
-
-        LocalDateTime latestStart = start.get();
 
         List<SaleRankingResponse> risingItems =
-                saleRankingRepository.getRisingItems(latestStart, PageRequest.of(0, limit));
+                saleRankingRepository.getRisingItems(PageRequest.of(0, limit));
 
         List<SaleRankingResponse> fallingItems =
-                saleRankingRepository.getFallingItems(latestStart, PageRequest.of(0, limit));
+                saleRankingRepository.getFallingItems(PageRequest.of(0, limit));
 
         return new ItemRankingResponse(
                 risingItems,
