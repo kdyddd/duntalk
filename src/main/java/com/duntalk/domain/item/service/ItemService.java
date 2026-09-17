@@ -18,6 +18,7 @@ public class ItemService {
 
     private final ItemRepository itemRepository;
     private final NeopleItemApiService neopleItemApiService;
+    private final ItemRankingService itemRankingService;
 
     public void saveItem(Item item) {
         itemRepository.save(item);
@@ -30,11 +31,13 @@ public class ItemService {
     }
 
     public ItemResponse getItem(String itemId) {
-        return itemRepository.findById(itemId)
-                .map(ItemResponse::from)
-                .orElseThrow(
+         Item item = itemRepository.findById(itemId)
+                 .orElseThrow(
                         () -> new ResourceNotFoundException("아이템을 찾을 수 없습니다.")
-                );
+                 );
+         itemRankingService.increaseItemViewCount(itemId);
+
+         return ItemResponse.from(item);
     }
 
     public List<ItemAutocompleteResponse> searchItemAutocomplete(String itemName) {

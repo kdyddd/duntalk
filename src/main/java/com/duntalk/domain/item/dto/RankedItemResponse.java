@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class SaleRankingResponse {
+public class RankedItemResponse {
     private String itemId;
     private String itemName;
     private Double changeRate;

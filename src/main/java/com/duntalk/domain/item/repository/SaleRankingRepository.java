@@ -1,29 +1,34 @@
 package com.duntalk.domain.item.repository;
 
-import com.duntalk.domain.item.dto.SaleRankingResponse;
+import com.duntalk.domain.item.dto.RankedItemResponse;
 import com.duntalk.domain.item.entity.SaleRanking;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 public interface SaleRankingRepository extends JpaRepository<SaleRanking, Long> {
-    @Query("SELECT new com.duntalk.domain.item.dto.SaleRankingResponse(" +
+    @Query("SELECT new com.duntalk.domain.item.dto.RankedItemResponse(" +
             "s.item.itemId, s.item.itemName, s.changeRate) " +
             "FROM SaleRanking s " +
             "WHERE s.changeRate > 0 " +
             "ORDER BY s.changeRate DESC")
-    List<SaleRankingResponse> getRisingItems(Pageable pageable);
+    List<RankedItemResponse> getRisingItems(Pageable pageable);
 
-    @Query("SELECT new com.duntalk.domain.item.dto.SaleRankingResponse(" +
+    @Query("SELECT new com.duntalk.domain.item.dto.RankedItemResponse(" +
             "s.item.itemId, s.item.itemName, s.changeRate) " +
             "FROM SaleRanking s " +
             "WHERE s.changeRate < 0 " +
             "ORDER BY s.changeRate ASC")
-    List<SaleRankingResponse> getFallingItems(Pageable pageable);
+    List<RankedItemResponse> getFallingItems(Pageable pageable);
+
+    @Query("SELECT new com.duntalk.domain.item.dto.RankedItemResponse(" +
+            "s.item.itemId, s.item.itemName, s.changeRate) " +
+            "FROM SaleRanking s " +
+            "WHERE s.item.itemId IN :itemIds")
+    List<RankedItemResponse> getPopularItems(@Param("itemIds") Set<String> itemIds);
 
 }

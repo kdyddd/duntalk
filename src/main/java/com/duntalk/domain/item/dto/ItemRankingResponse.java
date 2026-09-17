@@ -9,6 +9,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ItemRankingResponse {
 
-    private List<SaleRankingResponse> risingItems;
-    private List<SaleRankingResponse> fallingItems;
+    private List<RankedItemResponse> risingItems;
+    private List<RankedItemResponse> fallingItems;
 }
