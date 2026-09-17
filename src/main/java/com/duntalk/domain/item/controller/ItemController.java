@@ -1,9 +1,6 @@
 package com.duntalk.domain.item.controller;
 
-import com.duntalk.domain.item.dto.ItemAutocompleteResponse;
-import com.duntalk.domain.item.dto.ItemRankingResponse;
-import com.duntalk.domain.item.dto.ItemResponse;
-import com.duntalk.domain.item.dto.ItemStatisticsResponse;
+import com.duntalk.domain.item.dto.*;
 import com.duntalk.domain.item.service.ItemRankingService;
 import com.duntalk.domain.item.service.ItemService;
 import com.duntalk.domain.item.service.ItemStatisticsService;
@@ -50,9 +47,12 @@ public class ItemController {
 
     @GetMapping("/items/rankings")
     public ItemRankingResponse getRankings(@RequestParam(defaultValue = "5") int limit) {
-
         return itemRankingService.getRankings(limit);
+    }
 
+    @GetMapping("/items/rankings/popular")
+    public List<RankedItemResponse> getPopularItems(@RequestParam(defaultValue = "5") int limit) {
+        return itemRankingService.getPopularItems(limit);
     }
 
 

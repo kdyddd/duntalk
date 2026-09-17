@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory = $true)]
     [string]$ServerIp
-)g
+)
 
 $ErrorActionPreference = "Stop"
 
