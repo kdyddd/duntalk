@@ -4,13 +4,13 @@ import com.duntalk.domain.item.entity.Item;
 import com.duntalk.domain.item.repository.ItemRepository;
 import com.duntalk.domain.member.entity.Member;
 import com.duntalk.domain.member.repository.MemberRepository;
-import com.duntalk.domain.trade.dto.TradePostListDto;
-import com.duntalk.domain.trade.dto.TradePostRequest;
-import com.duntalk.domain.trade.dto.TradePostResponse;
+import com.duntalk.domain.trade.dto.*;
 import com.duntalk.domain.trade.entity.TradePost;
 import com.duntalk.domain.trade.repository.TradePostRepository;
 import com.duntalk.domain.trade.type.TradePostSort;
+import com.duntalk.domain.trade.type.TradePostStatus;
 import com.duntalk.domain.trade.type.TradePostType;
+import com.duntalk.global.exception.ForbiddenException;
 import com.duntalk.global.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +46,7 @@ public class TradePostService {
         return tradePostRepository.save(tradePost).getId();
     }
 
-    public Page<TradePostResponse> getTradePostList(TradePostType type, TradePostSort postSort, String keyword, Pageable pageable) {
+    public Page<TradePostListResponse> getTradePostList(TradePostType type, TradePostSort postSort, TradePostStatus status, String keyword, Pageable pageable) {
         if (keyword != null && keyword.isBlank()) {
             keyword = null;
         }
@@ -60,8 +61,46 @@ public class TradePostService {
 
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
 
-        Page<TradePostListDto> postListDtos = tradePostRepository.findPostList(type, keyword, sortedPageable);
+        Page<TradePostListDto> postListDtos = tradePostRepository.findPostList(type, status, keyword, sortedPageable);
 
-        return postListDtos.map(TradePostResponse::from);
+        return postListDtos.map(TradePostListResponse::from);
+    }
+
+
+    public TradePostResponse getTradePost(Long tradePostId) {
+        TradePostDto tradePostDto = tradePostRepository.getTradePost(tradePostId)
+                .orElseThrow(() ->
+                    new ResourceNotFoundException("거래 게시글을 찾을 수 없습니다.")
+                );
+
+        return TradePostResponse.from(tradePostDto);
+    }
+
+    @Transactional
+    public void changeTradePostStatus(Long tradePostId, Integer memberId) {
+        TradePost tradePost = tradePostRepository.findByIdAndDeletedFalse(tradePostId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("거래 게시글을 찾을 수 없습니다.")
+                );
+
+        if (!tradePost.getWriter().getId().equals(memberId)) {
+            throw new ForbiddenException("작성자만 거래 상태를 변경할 수 있습니다");
+        }
+
+        tradePost.complete();
+    }
+
+    @Transactional
+    public void deleteTradePost(Long tradePostId, Integer memberId) {
+        TradePost tradePost = tradePostRepository.findByIdAndDeletedFalse(tradePostId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("거래 게시글을 찾을 수 없습니다.")
+                );
+
+        if (!tradePost.getWriter().getId().equals(memberId)) {
+            throw new ForbiddenException("작성자만 거래 게시글을 삭제할 수 있습니다");
+        }
+
+        tradePost.delete();
     }
 }

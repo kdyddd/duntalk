@@ -5,7 +5,7 @@ import com.duntalk.domain.trade.type.TradePostType;
 
 import java.time.LocalDateTime;
 
-public record TradePostResponse(
+public record TradePostListResponse(
         Long tradePostId,
         String itemId,
         String itemName,
@@ -14,11 +14,10 @@ public record TradePostResponse(
         String writerName,
         TradePostType type,
         TradePostStatus status,
-        LocalDateTime createdAt,
-        String content
+        LocalDateTime createdAt
 ) {
-    public static TradePostResponse from(TradePostDto dto) {
-        return new TradePostResponse(
+    public static TradePostListResponse from(TradePostListDto dto) {
+        return new TradePostListResponse(
                 dto.tradePostId(),
                 dto.itemId(),
                 dto.itemName(),
@@ -27,8 +26,7 @@ public record TradePostResponse(
                 dto.adventureName(),
                 dto.type(),
                 dto.status(),
-                dto.createdAt(),
-                dto.content()
+                dto.createdAt()
         );
     }
 }
