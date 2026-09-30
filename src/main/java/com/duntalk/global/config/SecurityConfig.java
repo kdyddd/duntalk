@@ -45,6 +45,8 @@ public class SecurityConfig {
                                         "/community/comments/*"
                                 )
                                 .authenticated()
+                                .requestMatchers(HttpMethod.POST, "/megaphones")
+                                .hasRole("ADVENTURE")
                                 .anyRequest()
                                 .permitAll()
                 )
