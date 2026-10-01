@@ -55,7 +55,7 @@ public class MegaphoneService {
         String value = jsonMapper.writeValueAsString(response);
 
         long expireAt = Instant.now()
-                .plus(Duration.ofMinutes(30))
+                .plus(Duration.ofHours(24))
                 .getEpochSecond();
 
         stringRedisTemplate.opsForZSet()
